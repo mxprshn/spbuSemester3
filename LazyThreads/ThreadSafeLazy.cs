@@ -5,8 +5,8 @@ namespace LazyThreads
 {
     public class ThreadSafeLazy<T> : ILazy<T>
     {
-        private bool isInitial = true;
-        private Func<T> supplier;
+        private bool isEvaluated = false;
+        private readonly Func<T> supplier;
         private Object locker = new Object();
         private T value;
 
@@ -14,17 +14,17 @@ namespace LazyThreads
 
         public T Get()
         {
-            if (!isInitial)
+            if (Volatile.Read(ref isEvaluated))
             {
                 return value;
             }
 
             lock (locker)
             {
-                if (isInitial)
+                if (!isEvaluated)
                 {
                     value = supplier();
-                    isInitial = false;
+                    Volatile.Write(ref isEvaluated, true);
                 }
             }
 
