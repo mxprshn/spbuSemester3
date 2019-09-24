@@ -15,7 +15,7 @@ namespace LazyThreads.Tests
 
         private class LazyTester<T> : ILazyTester
         {
-            private Lazy<T> testLazy;
+            private ILazy<T> testLazy;
             private readonly T expectedValue;
             private readonly Func<T> supplier;
 
@@ -27,30 +27,25 @@ namespace LazyThreads.Tests
 
             public void SingleGetTest()
             {
-                testLazy = new Lazy<T>(supplier);
-                var result = testLazy.Get();
-                Assert.AreEqual(expectedValue, result);
+                testLazy = LazyFactory.CreateLazy<T>(supplier);
+                Assert.AreEqual(expectedValue, testLazy.Get());
             }
 
             public void MultipleGetTest()
             {
+                const int GetAmount = 20;
                 var count = 0;
-                testLazy = new Lazy<T>(() => {
-                    Assert.IsTrue(count == 0);
+                testLazy = LazyFactory.CreateLazy<T>(() => {
                     ++count;
                     return supplier();
                 });
 
-                var result1 = testLazy.Get();
-                var result2 = testLazy.Get();
-
-                for (var i = 0; i < 20; ++i)
+                for (var i = 0; i < GetAmount; ++i)
                 {
-                    _ = testLazy.Get();
+                    Assert.AreEqual(expectedValue, testLazy.Get());
                 }
 
-                Assert.AreEqual(expectedValue, result1);
-                Assert.AreEqual(result1, result2);
+                Assert.AreEqual(1, count);
             }
         }
 
@@ -84,11 +79,11 @@ namespace LazyThreads.Tests
         [Test]
         public void AreTheSameGetTest()
         {
-            var testLazy = new Lazy<TestObject>(() => { return new TestObject(0); });
-            var result1 = testLazy.Get();
-            result1.Value = 100;
-            var result2 = testLazy.Get();
-            Assert.AreEqual(100, result2.Value);
+            const int NewValue = 100;
+            var testLazy = LazyFactory.CreateLazy<TestObject>(() => { return new TestObject(0); });
+            var result = testLazy.Get();
+            result.Value = NewValue;
+            Assert.AreEqual(NewValue, testLazy.Get().Value);
         }
 
         private static object[] GetTestCases =

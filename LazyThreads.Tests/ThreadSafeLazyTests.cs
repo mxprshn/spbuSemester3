@@ -12,13 +12,16 @@ namespace LazyThreads.Tests
         {
             void SingleGetTest();
             void MultipleGetTest();
+            void ConcurrentGetTest();
         }
 
         private class ThreadSafeLazyTester<T> : IThreadSafeLazyTester
         {
-            private ThreadSafeLazy<T> testLazy;
+            private ILazy<T> testLazy;
             private readonly T expectedValue;
             private readonly Func<T> supplier;
+            private readonly int threadAmount = 1;
+            private readonly int getAmount = 1;
 
             public ThreadSafeLazyTester(Func<T> supplier, T expectedValue)
             {
@@ -26,32 +29,75 @@ namespace LazyThreads.Tests
                 this.expectedValue = expectedValue;
             }
 
+            public ThreadSafeLazyTester(Func<T> supplier, T expectedValue, int threadAmount = 1, int getAmount = 1)
+                : this(supplier, expectedValue)
+            {
+                this.threadAmount = threadAmount;
+                this.getAmount = getAmount;
+            }
+
             public void SingleGetTest()
             {
-                testLazy = new ThreadSafeLazy<T>(supplier);
-                var result = testLazy.Get();
-                Assert.AreEqual(expectedValue, result);
+                testLazy = LazyFactory.CreateThreadSafeLazy<T>(supplier);
+                Assert.AreEqual(expectedValue, testLazy.Get());
             }
 
             public void MultipleGetTest()
             {
+                const int GetAmount = 20;
                 var count = 0;
-                testLazy = new ThreadSafeLazy<T>(() => {
-                    Assert.IsTrue(count == 0);
+                testLazy = LazyFactory.CreateThreadSafeLazy<T>(() => {
                     ++count;
                     return supplier();
                 });
 
-                var result1 = testLazy.Get();
-                var result2 = testLazy.Get();
-
-                for (var i = 0; i < 20; ++i)
+                for (var i = 0; i < GetAmount; ++i)
                 {
-                    _ = testLazy.Get();
+                    Assert.AreEqual(expectedValue, testLazy.Get());
                 }
 
-                Assert.AreEqual(expectedValue, result1);
-                Assert.AreEqual(result1, result2);
+                Assert.AreEqual(1, count);
+            }
+
+            public void ConcurrentGetTest()
+            {
+                var count = 0;
+                var resetEvent = new ManualResetEvent(false);
+
+                var testLazy = LazyFactory.CreateThreadSafeLazy<T>(() =>
+                {
+                    ++count;
+                    return supplier();
+                });
+
+                var threads = new Thread[threadAmount];
+
+                for (var i = 0; i < threads.Length; ++i)
+                {
+                    threads[i] = new Thread(() =>
+                    {
+                        resetEvent.WaitOne();
+                        for (var j = 0; j < getAmount; ++j)
+                        {
+                            var result = testLazy.Get();
+                            Assert.AreEqual(expectedValue, result);
+                        }
+                    });
+                }
+
+                for (var i = 0; i < threads.Length; ++i)
+                {
+                    threads[i].Start();
+                }
+
+                resetEvent.Set();
+
+                for (var i = 0; i < threads.Length; ++i)
+                {
+                    threads[i].Join();
+                }
+
+                Assert.AreEqual(1, count);
             }
         }
 
@@ -82,40 +128,17 @@ namespace LazyThreads.Tests
         [TestCaseSource("GetTestCases")]
         public void MultipleGetTest(IThreadSafeLazyTester tester) => tester.MultipleGetTest();
 
+        [TestCaseSource("ConcurrentGetTestCases"), Repeat(30)]
+        public void ConcurrentGetTest(IThreadSafeLazyTester tester) => tester.ConcurrentGetTest();
+
         [Test]
         public void AreTheSameGetTest()
         {
-            var testLazy = new Lazy<TestObject>(() => { return new TestObject(0); });
-            var result1 = testLazy.Get();
-            result1.Value = 100;
-            var result2 = testLazy.Get();
-            Assert.AreEqual(100, result2.Value);
-        }
-
-        [Test]
-        public void ConcurrentGetTest()
-        {
-            var count = 0;
-            var testLazy = new Lazy<int>(() => {
-                //Assert.IsTrue(count == 0);
-                Console.WriteLine("ololo");
-                ++count;
-                return 0;
-            });
-
-            var threads = new Thread[10];
-
-            for (var i = 0; i < threads.Length; ++i)
-            {
-                threads[i] = new Thread(() => { testLazy.Get(); });
-            }
-
-            for (var i = 0; i < threads.Length; ++i)
-            {
-                threads[i].Start();
-            }
-
-            testLazy.Get();
+            const int NewValue = 100;
+            var testLazy = LazyFactory.CreateThreadSafeLazy<TestObject>(() => { return new TestObject(0); });
+            var result = testLazy.Get();
+            result.Value = NewValue;
+            Assert.AreEqual(NewValue, testLazy.Get().Value);
         }
 
         private static object[] GetTestCases =
@@ -127,6 +150,33 @@ namespace LazyThreads.Tests
             new ThreadSafeLazyTester<string>(() => { return null; }, null),
             new ThreadSafeLazyTester<List<int>>(() => { return new List<int>{ 1, 2, 3, 4, 5 }; }, new List<int>{ 1, 2, 3, 4, 5 }),
             new ThreadSafeLazyTester<TestObject>(() => { return new TestObject(10); }, new TestObject(10))
+        };
+
+        private static object[] ConcurrentGetTestCases =
+        {
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 1, 1),
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 2, 1),
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 3, 1),
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 4, 1),
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 8, 1),
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 2, 3),
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 4, 3),
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 8, 3),
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 2, 10),
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 4, 10),
+            new ThreadSafeLazyTester<Int64>(() => { return 42; }, 42, 8, 10),
+
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 1, 1),
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 2, 1),
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 3, 1),
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 4, 1),
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 8, 1),
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 2, 3),
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 4, 3),
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 8, 3),
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 2, 10),
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 4, 10),
+            new ThreadSafeLazyTester<string>(() => { return "ololo"; }, "ololo", 8, 10)
         };
     }
 }
