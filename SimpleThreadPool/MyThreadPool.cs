@@ -1,53 +1,65 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
+
+// добавили новый таск в очередь -- потоки должны узнать, что можно будет его достать
 
 namespace SimpleThreadPool
 {
     class MyThreadPool : IMyThreadPool
     {
         private Thread[] threads;
-        private ConcurrentQueue<Action> tasks;
-        private Semaphore semaphore;
+        // отдавать сюда что-то из MyTask
+        private Queue<Action> tasks;
+        private AutoResetEvent resetEvent = new AutoResetEvent(false);
         private CancellationTokenSource tokenSource = new CancellationTokenSource();
+        private Object locker = new Object();
 
         public int ThreadCount => threads.Length;
 
         public MyThreadPool(int threadCount)
         {
-            semaphore = new Semaphore(0, threadCount);
             threads = new Thread[threadCount];
 
             for (var i = 0; i < threadCount; ++i)
             {
-                threads[i] = new Thread(DoTasks(tokenSource.Token));
+                // как-то передавать токен сюда
+                threads[i] = new Thread(DoTasks);
                 threads[i].Start();
             }
         }
 
-        private void DoTasks(CancellationToken cancellationToken)
+        private void DoTasks()
         {
             while (true)
             {
-                semaphore.WaitOne();
-                // Add more concurrency
-                if (tasks.TryDequeue(out var action))
+                Action action = null;
+
+                lock (locker)
                 {
-                    action.Invoke();
+                    while (tasks.Count == 0)
+                    {
+                        Monitor.Wait(locker);
+                    }
+
+                    action = tasks.Dequeue();
                 }
-                semaphore.Release();
+
+                action.Invoke();
             }
         }
 
         public MyTask<TResult> QueueTask<TResult>(Func<TResult> supplier)
         {
             var task = new MyTask<TResult>(supplier);
-            tasks.Enqueue(new Action(task));
-            return null;
+
+            lock (locker)
+            {
+                tasks.Enqueue(task.TaskStarter);
+                Monitor.Pulse(locker);
+            }
+            
+            return task;
         }
 
         public void Shutdown()
