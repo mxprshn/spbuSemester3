@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SimpleThreadPool
 {
-    interface IMyThreadPool
+    public interface IMyThreadPool
     {
         int ThreadCount { get; }
         IMyTask<TResult> QueueTask<TResult>(Func<TResult> task);

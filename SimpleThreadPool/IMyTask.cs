@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SimpleThreadPool
 {
-    interface IMyTask<TResult>
+    public interface IMyTask<TResult>
     {
         bool IsCompleted { get; }
         TResult Result { get; }
