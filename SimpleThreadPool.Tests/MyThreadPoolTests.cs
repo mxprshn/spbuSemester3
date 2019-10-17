@@ -183,7 +183,6 @@ namespace SimpleThreadPool.Tests
             var tasks = new List<IMyTask<int>>();
             var resetEvent = new ManualResetEvent(false);
             var counter = 0;
-
             for (var i = 0; i < threadCount + 10; ++i)
             {
                 tasks.Add(pool.QueueTask(() =>
@@ -194,7 +193,7 @@ namespace SimpleThreadPool.Tests
                 }));
             }
 
-            Thread.Sleep(0);
+            Thread.Sleep(1000);
             pool.Shutdown();
             resetEvent.Set();
             Thread.Sleep(1000);

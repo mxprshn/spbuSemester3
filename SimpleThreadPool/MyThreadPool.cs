@@ -11,13 +11,13 @@ namespace SimpleThreadPool
     {
         private class MyTask<TResult> : IMyTask<TResult>
         {
-            private Action<bool> continuation;
+            private Action continuation;
             private MyThreadPool threadPool;
             private Func<TResult> supplier;
             private TResult result;
             private AggregateException aggregateException;
             private ManualResetEvent isResultReadyEvent = new ManualResetEvent(false);
-            private bool isCancelled = false;
+            private bool isCancelled = false; // можно сделать свойством в интерфейсе
             private Object isCompletedLocker = new Object();
 
             public bool IsCompleted { get; private set; } = false;
@@ -53,13 +53,13 @@ namespace SimpleThreadPool
                 }
             }
 
-            public Action<bool> TaskStarter => (isCancelled) => 
+            public Action TaskStarter => () => 
             {
                 try
                 {
-                    if (isCancelled)
+                    if (threadPool.cancellationTokenSource.IsCancellationRequested)
                     {
-                        this.isCancelled = true;
+                        isCancelled = true;
                         return;
                     }
 
@@ -112,7 +112,7 @@ namespace SimpleThreadPool
         }
 
         private Thread[] threads;
-        private Queue<Action<bool>> actions = new Queue<Action<bool>>();
+        private Queue<Action> actions = new Queue<Action>();
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         private Object actionQueueLocker = new Object();
 
@@ -138,36 +138,28 @@ namespace SimpleThreadPool
         {
             while (true)
             {
-                Action<bool> nextAction = null;
+                Action nextAction = null;
 
                 lock (actionQueueLocker)
                 {
                     while (actions.Count == 0)
                     {
+                        if (cancellationTokenSource.IsCancellationRequested)
+                        {
+                            return;
+                        }
+
                         Monitor.Wait(actionQueueLocker);
                     }
 
                     nextAction = actions.Dequeue();
                 }
 
-                nextAction.Invoke(false);
-
-                if (cancellationTokenSource.IsCancellationRequested)
-                {
-                    lock (actionQueueLocker)
-                    {
-                        while (actions.Count != 0)
-                        {
-                            actions.Dequeue().Invoke(true);
-                        }
-                    }
-
-                    return;
-                }
+                nextAction.Invoke();
             }
         }
 
-        private void EnqueueAction(Action<bool> action)
+        private void EnqueueAction(Action action)
         {
             lock (actionQueueLocker)
             {
@@ -183,14 +175,32 @@ namespace SimpleThreadPool
                 throw new ThreadPoolShutdownException();
             }
 
-            var task = new MyTask<TResult>(supplier, this);
-            EnqueueAction(task.TaskStarter);            
-            return task;
+            lock (actionQueueLocker)
+            {
+                var task = new MyTask<TResult>(supplier, this);
+                actions.Enqueue(task.TaskStarter);
+                Monitor.Pulse(actionQueueLocker);
+                return task;
+            }
+
+            
+            //EnqueueAction(task.TaskStarter);            
+            
         }
 
         public void Shutdown()
         {
+            if (cancellationTokenSource.IsCancellationRequested)
+            {
+                throw new ThreadPoolShutdownException();
+            }
+
             cancellationTokenSource.Cancel();
+
+            lock (actionQueueLocker)
+            {
+                Monitor.PulseAll(actionQueueLocker);
+            }
         }
     }
 }
