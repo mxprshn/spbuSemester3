@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SimpleThreadPool
 {
+    /// <summary>
+    /// Exception thrown in the case of an operation with stopped thread pool.
+    /// </summary>
     [Serializable]
     public class ThreadPoolShutdownException : Exception
     {

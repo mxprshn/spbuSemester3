@@ -249,6 +249,8 @@ namespace SimpleThreadPool.Tests
                 Assert.Throws<ThreadPoolShutdownException>(() => _ = tasks[i].Result);
                 Assert.IsFalse(tasks[i].IsCompleted);
             }
+
+            while (pool.ActiveThreadCount != 0);
         }
 
         [Test, Combinatorial]
@@ -286,6 +288,65 @@ namespace SimpleThreadPool.Tests
                 Assert.AreEqual(tasks[i].Result, Math.Pow(2, i));
                 Assert.AreEqual(1, counters[i]);
             }
+        }
+
+        [Test]
+        public void MultipleContinueWithTest()
+        {
+            var pool = new MyThreadPool(3);
+            var resetEvent1 = new ManualResetEvent(false);
+            var resetEvent2 = new ManualResetEvent(false);
+
+            var firstTask = pool.QueueTask(() =>
+            {
+                resetEvent1.WaitOne();
+                return 100;
+            });
+
+            var intTask1 = firstTask.ContinueWith((j) => 
+            {
+                resetEvent2.WaitOne();
+                return j + 100;
+            });
+
+            var intTask2 = firstTask.ContinueWith((j) =>
+            {
+                resetEvent2.WaitOne();
+                return j + 200;
+            });
+
+            var stringTask = firstTask.ContinueWith((j) =>
+            {
+                resetEvent2.WaitOne();
+                return j.ToString();
+            });
+
+            var boolTask = firstTask.ContinueWith((j) =>
+            {
+                resetEvent2.WaitOne();
+                return j > 0;
+            });
+
+            resetEvent1.Set();
+
+            Assert.AreEqual(100, firstTask.Result);
+
+            Assert.IsFalse(intTask1.IsCompleted);
+            Assert.IsFalse(intTask2.IsCompleted);
+            Assert.IsFalse(stringTask.IsCompleted);
+            Assert.IsFalse(boolTask.IsCompleted);
+
+            resetEvent2.Set();
+
+            Assert.AreEqual(200, intTask1.Result);
+            Assert.AreEqual(300, intTask2.Result);
+            Assert.AreEqual("100", stringTask.Result);
+            Assert.AreEqual(true, boolTask.Result);
+
+            Assert.IsTrue(intTask1.IsCompleted);
+            Assert.IsTrue(intTask2.IsCompleted);
+            Assert.IsTrue(stringTask.IsCompleted);
+            Assert.IsTrue(boolTask.IsCompleted);
         }
     }
 }
