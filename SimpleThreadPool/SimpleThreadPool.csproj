@@ -45,6 +45,7 @@
     <Compile Include="IMyThreadPool.cs" />
     <Compile Include="MyThreadPool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ThreadPoolShutdownException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

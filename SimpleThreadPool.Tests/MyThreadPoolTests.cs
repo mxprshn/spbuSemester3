@@ -184,7 +184,7 @@ namespace SimpleThreadPool.Tests
             var resetEvent = new ManualResetEvent(false);
             var counter = 0;
 
-            for (var i = 0; i < threadCount; ++i)
+            for (var i = 0; i < threadCount + 10; ++i)
             {
                 tasks.Add(pool.QueueTask(() =>
                 {
@@ -194,10 +194,26 @@ namespace SimpleThreadPool.Tests
                 }));
             }
 
+            Thread.Sleep(0);
             pool.Shutdown();
             resetEvent.Set();
             Thread.Sleep(1000);
             Assert.AreEqual(threadCount, counter);
+
+            for (var i = 0; i < threadCount; ++i)
+            {
+                Assert.AreEqual(0, tasks[i].Result);
+                Assert.IsTrue(tasks[i].IsCompleted);
+            }
+
+            for (var i = threadCount; i < threadCount + 10; ++i)
+            {
+                Assert.Throws<ThreadPoolShutdownException>(() => _ = tasks[i].Result);
+                Assert.IsFalse(tasks[i].IsCompleted);
+            }
+
+            Assert.Throws<ThreadPoolShutdownException>(() => pool.QueueTask(() => 0));
+            Assert.Throws<ThreadPoolShutdownException>(() => tasks[0].ContinueWith((i) => i * 2));
         }
 
         [Test, Combinatorial]

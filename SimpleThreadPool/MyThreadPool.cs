@@ -11,13 +11,13 @@ namespace SimpleThreadPool
     {
         private class MyTask<TResult> : IMyTask<TResult>
         {
-            // добавить многопоточности
-            private Action continuation;
+            private Action<bool> continuation;
             private MyThreadPool threadPool;
             private Func<TResult> supplier;
             private TResult result;
             private AggregateException aggregateException;
-            private ManualResetEvent resetEvent = new ManualResetEvent(false);
+            private ManualResetEvent isResultReadyEvent = new ManualResetEvent(false);
+            private bool isCancelled = false;
             private Object isCompletedLocker = new Object();
 
             public bool IsCompleted { get; private set; } = false;
@@ -32,7 +32,12 @@ namespace SimpleThreadPool
             {
                 get
                 {
-                    resetEvent.WaitOne();
+                    isResultReadyEvent.WaitOne();
+
+                    if (isCancelled)
+                    {
+                        throw new ThreadPoolShutdownException();
+                    }
 
                     if (aggregateException != null)
                     {
@@ -48,10 +53,16 @@ namespace SimpleThreadPool
                 }
             }
 
-            public Action TaskStarter => () => {
-
+            public Action<bool> TaskStarter => (isCancelled) => 
+            {
                 try
                 {
+                    if (isCancelled)
+                    {
+                        this.isCancelled = true;
+                        return;
+                    }
+
                     result = supplier();
                     IsCompleted = true;
                     supplier = null;
@@ -71,12 +82,17 @@ namespace SimpleThreadPool
                 }
                 finally
                 {
-                    resetEvent.Set();
+                    isResultReadyEvent.Set();
                 }
             };
 
             public IMyTask<TNewResult> ContinueWith<TNewResult>(Func<TResult, TNewResult> newSupplier)
             {
+                if (threadPool.cancellationTokenSource.IsCancellationRequested)
+                {
+                    throw new ThreadPoolShutdownException();
+                }
+
                 var task = new MyTask<TNewResult>(() => newSupplier(result), threadPool);
 
                 lock (isCompletedLocker)
@@ -96,61 +112,77 @@ namespace SimpleThreadPool
         }
 
         private Thread[] threads;
-        private Queue<Action> tasks = new Queue<Action>();
+        private Queue<Action<bool>> actions = new Queue<Action<bool>>();
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        private Object locker = new Object();
+        private Object actionQueueLocker = new Object();
 
         public int ThreadCount => threads.Length;
 
         public MyThreadPool(int threadCount)
         {
-            // проверка на отрицательные значения threadCount
-            threads = new Thread[threadCount];
-            
+            if (threadCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException("Not positive amount of threads in MyThreadPool constructor.");
+            }
+
+            threads = new Thread[threadCount];            
 
             for (var i = 0; i < threadCount; ++i)
             {
-                threads[i] = new Thread(() => DoTasks(cancellationTokenSource.Token));
+                threads[i] = new Thread(DoTasks);
                 threads[i].Start();
             }
         }
 
-        private void DoTasks(CancellationToken cancellationToken)
+        private void DoTasks()
         {
             while (true)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
+                Action<bool> nextAction = null;
 
-                Action action = null;
-
-                lock (locker)
+                lock (actionQueueLocker)
                 {
-                    while (tasks.Count == 0)
+                    while (actions.Count == 0)
                     {
-                        Monitor.Wait(locker);
+                        Monitor.Wait(actionQueueLocker);
                     }
 
-                    action = tasks.Dequeue();
+                    nextAction = actions.Dequeue();
                 }
 
-                action.Invoke();
+                nextAction.Invoke(false);
+
+                if (cancellationTokenSource.IsCancellationRequested)
+                {
+                    lock (actionQueueLocker)
+                    {
+                        while (actions.Count != 0)
+                        {
+                            actions.Dequeue().Invoke(true);
+                        }
+                    }
+
+                    return;
+                }
             }
         }
 
-        private void EnqueueAction(Action action)
+        private void EnqueueAction(Action<bool> action)
         {
-            lock (locker)
+            lock (actionQueueLocker)
             {
-                tasks.Enqueue(action);
-                Monitor.Pulse(locker);
+                actions.Enqueue(action);
+                Monitor.Pulse(actionQueueLocker);
             }
         }
 
         public IMyTask<TResult> QueueTask<TResult>(Func<TResult> supplier)
         {
+            if (cancellationTokenSource.IsCancellationRequested)
+            {
+                throw new ThreadPoolShutdownException();
+            }
+
             var task = new MyTask<TResult>(supplier, this);
             EnqueueAction(task.TaskStarter);            
             return task;

@@ -10,7 +10,6 @@ namespace SimpleThreadPool
     {
         bool IsCompleted { get; }
         TResult Result { get; }
-        Action TaskStarter { get; }
         IMyTask<TNewResult> ContinueWith<TNewResult>(Func<TResult, TNewResult> newTask);
     }
 }
