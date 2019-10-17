@@ -18,6 +18,7 @@ namespace SimpleThreadPool
             private TResult result;
             private AggregateException aggregateException;
             private ManualResetEvent resetEvent = new ManualResetEvent(false);
+            private Object isCompletedLocker = new Object();
 
             public bool IsCompleted { get; private set; } = false;
 
@@ -53,10 +54,15 @@ namespace SimpleThreadPool
                 {
                     result = supplier();
                     IsCompleted = true;
+                    supplier = null;
 
-                    if (continuation != null)
+                    lock (isCompletedLocker)
                     {
-                        threadPool.EnqueueAction(continuation);
+                        if (continuation != null)
+                        {
+                            threadPool.EnqueueAction(continuation);
+                            continuation = null;
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -69,15 +75,20 @@ namespace SimpleThreadPool
                 }
             };
 
-            public IMyTask<TNewResult> ContinueWith<TNewResult>(Func<TResult, TNewResult> newTask)
+            public IMyTask<TNewResult> ContinueWith<TNewResult>(Func<TResult, TNewResult> newSupplier)
             {
-                var task = new MyTask<TNewResult>(() => newTask(result), threadPool);
-                continuation = task.TaskStarter;
+                var task = new MyTask<TNewResult>(() => newSupplier(result), threadPool);
 
-                // синхронизация
-                if (IsCompleted)
+                lock (isCompletedLocker)
                 {
-                    threadPool.EnqueueAction(continuation);
+                    if (IsCompleted)
+                    {
+                        threadPool.EnqueueAction(task.TaskStarter);
+                    }
+                    else
+                    {
+                        continuation = task.TaskStarter;
+                    }
                 }
 
                 return task;
@@ -99,7 +110,6 @@ namespace SimpleThreadPool
 
             for (var i = 0; i < threadCount; ++i)
             {
-                // как-то передавать токен сюда
                 threads[i] = new Thread(() => DoTasks(cancellationTokenSource.Token));
                 threads[i].Start();
             }
