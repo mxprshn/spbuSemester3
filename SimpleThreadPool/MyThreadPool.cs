@@ -67,14 +67,7 @@ namespace SimpleThreadPool
                     IsCompleted = true;
                     supplier = null;
 
-                    lock (isCompletedLocker)
-                    {
-                        if (continuation != null)
-                        {
-                            threadPool.EnqueueAction(continuation);
-                            continuation = null;
-                        }
-                    }
+
                 }
                 catch (Exception exception)
                 {
@@ -83,6 +76,15 @@ namespace SimpleThreadPool
                 finally
                 {
                     isResultReadyEvent.Set();
+
+                    lock (isCompletedLocker)
+                    {
+                        if (continuation != null)
+                        {
+                            threadPool.EnqueueAction(continuation);
+                            continuation = null;
+                        }
+                    }
                 }
             };
 
@@ -93,7 +95,7 @@ namespace SimpleThreadPool
                     throw new ThreadPoolShutdownException();
                 }
 
-                var task = new MyTask<TNewResult>(() => newSupplier(result), threadPool);
+                var task = new MyTask<TNewResult>(() => newSupplier(Result), threadPool);
 
                 lock (isCompletedLocker)
                 {
@@ -116,7 +118,7 @@ namespace SimpleThreadPool
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         private Object actionQueueLocker = new Object();
 
-        public int ThreadCount => threads.Length;
+        public int ActiveThreadCount { get; private set; }
 
         public MyThreadPool(int threadCount)
         {
@@ -125,13 +127,15 @@ namespace SimpleThreadPool
                 throw new ArgumentOutOfRangeException("Not positive amount of threads in MyThreadPool constructor.");
             }
 
-            threads = new Thread[threadCount];            
+            threads = new Thread[threadCount]; 
 
             for (var i = 0; i < threadCount; ++i)
             {
                 threads[i] = new Thread(DoTasks);
                 threads[i].Start();
             }
+
+            ActiveThreadCount = threadCount;
         }
 
         private void DoTasks()
@@ -146,6 +150,7 @@ namespace SimpleThreadPool
                     {
                         if (cancellationTokenSource.IsCancellationRequested)
                         {
+                            --ActiveThreadCount;
                             return;
                         }
 
@@ -175,17 +180,9 @@ namespace SimpleThreadPool
                 throw new ThreadPoolShutdownException();
             }
 
-            lock (actionQueueLocker)
-            {
-                var task = new MyTask<TResult>(supplier, this);
-                actions.Enqueue(task.TaskStarter);
-                Monitor.Pulse(actionQueueLocker);
-                return task;
-            }
-
-            
-            //EnqueueAction(task.TaskStarter);            
-            
+            var task = new MyTask<TResult>(supplier, this);
+            EnqueueAction(task.TaskStarter);
+            return task;
         }
 
         public void Shutdown()

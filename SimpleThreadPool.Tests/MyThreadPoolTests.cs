@@ -175,7 +175,6 @@ namespace SimpleThreadPool.Tests
         [TestCase(3)]
         [TestCase(5)]
         [TestCase(10)]
-        [TestCase(20)]
         [Repeat(3)]
         public void ShutdownTest(int threadCount)
         {
@@ -213,6 +212,43 @@ namespace SimpleThreadPool.Tests
 
             Assert.Throws<ThreadPoolShutdownException>(() => pool.QueueTask(() => 0));
             Assert.Throws<ThreadPoolShutdownException>(() => tasks[0].ContinueWith((i) => i * 2));
+
+            while (pool.ActiveThreadCount != 0);
+        }
+
+        [TestCase(1)]
+        [TestCase(3)]
+        [TestCase(5)]
+        [TestCase(10)]
+        [Repeat(3)]
+        public void ContinueWithShutdownTest(int threadCount)
+        {
+            var pool = new MyThreadPool(threadCount);
+            var tasks = new IMyTask<int>[threadCount + 10];
+            var resetEvent = new ManualResetEvent(false);
+
+            tasks[0] = pool.QueueTask(() =>
+            {
+                resetEvent.WaitOne();
+                return 1;
+            });
+
+            for (var i = 1; i < tasks.Length; ++i)
+            {
+                tasks[i] = tasks[i - 1].ContinueWith((j) =>
+                {
+                    return ++j;
+                });
+            }
+
+            pool.Shutdown();
+            resetEvent.Set();
+
+            for (var i = 1; i < tasks.Length; ++i)
+            {
+                Assert.Throws<ThreadPoolShutdownException>(() => _ = tasks[i].Result);
+                Assert.IsFalse(tasks[i].IsCompleted);
+            }
         }
 
         [Test, Combinatorial]

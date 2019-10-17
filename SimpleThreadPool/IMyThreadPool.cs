@@ -8,7 +8,7 @@ namespace SimpleThreadPool
 {
     public interface IMyThreadPool
     {
-        int ThreadCount { get; }
+        int ActiveThreadCount { get; }
         IMyTask<TResult> QueueTask<TResult>(Func<TResult> task);
         void Shutdown();
     }
