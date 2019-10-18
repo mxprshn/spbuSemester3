@@ -39,7 +39,7 @@ namespace SimpleThreadPool.Tests
             }
 
             WaitHandle.WaitAll(handles);
-            Assert.IsTrue(idBag.Distinct().Count() == idBag.Count);
+            Assert.AreEqual(idBag.Count, idBag.Distinct().Count());
         }
 
         [TestCase(1)]
@@ -70,7 +70,7 @@ namespace SimpleThreadPool.Tests
                 Assert.AreEqual(i, tasks[i].Result);
             }
 
-            Assert.IsTrue(idBag.Distinct().Count() == 1);
+            Assert.AreEqual(1, idBag.Distinct().Count());
         }
 
         [TestCase(1)]
@@ -347,6 +347,19 @@ namespace SimpleThreadPool.Tests
             Assert.IsTrue(intTask2.IsCompleted);
             Assert.IsTrue(stringTask.IsCompleted);
             Assert.IsTrue(boolTask.IsCompleted);
+        }
+
+        [Test]
+        public void AggregateExceptionTest()
+        {
+            var pool = new MyThreadPool(3);
+            var task1 = pool.QueueTask(() => 0);
+            var task2 = task1.ContinueWith((j) => 1 / j);
+            var task3 = task2.ContinueWith((j) => j.ToString());
+
+
+            Assert.Throws<AggregateException>(() => _ = task2.Result);
+            Assert.Throws<AggregateException>(() => _ = task3.Result);
         }
     }
 }

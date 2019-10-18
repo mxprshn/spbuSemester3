@@ -66,7 +66,7 @@ namespace SimpleThreadPool
                     IsCompleted = true;
                     supplier = null;
                 }
-                catch (AggregateException exception)
+                catch (Exception exception)
                 {
                     aggregateException = new AggregateException(exception);
                 }
@@ -78,7 +78,11 @@ namespace SimpleThreadPool
                     {
                         while (continuations.Count != 0)
                         {
-                            threadPool.EnqueueAction(continuations.Dequeue());
+                            lock (threadPool.actionQueueLocker)
+                            {
+                                threadPool.actions.Enqueue(continuations.Dequeue());
+                                Monitor.Pulse(threadPool.actionQueueLocker);                         
+                            }
                         }
                     }
                 }
@@ -177,6 +181,11 @@ namespace SimpleThreadPool
         {
             lock (actionQueueLocker)
             {
+                if (cancellationTokenSource.IsCancellationRequested)
+                {
+                    throw new ThreadPoolShutdownException();
+                }
+
                 actions.Enqueue(action);
                 Monitor.Pulse(actionQueueLocker);
             }
