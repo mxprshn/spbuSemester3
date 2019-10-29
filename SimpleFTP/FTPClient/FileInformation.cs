@@ -8,6 +8,13 @@ namespace FTPClient
 {
     public class FileInformation
     {
+        public string Name { get; }
+        public bool IsDirectory { get; }
 
+        public FileInformation(string name, bool isDirectory)
+        {
+            Name = name;
+            IsDirectory = isDirectory;
+        }
     }
 }

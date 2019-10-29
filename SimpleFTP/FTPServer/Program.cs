@@ -8,8 +8,10 @@ namespace FTPServer
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
+            var server = new FileServer(8888);
+            await server.Run();
         }
     }
 }
