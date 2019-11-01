@@ -43,7 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileQueryParser.cs" />
     <Compile Include="GetCommand.cs" />
+    <Compile Include="IQueryParser.cs" />
     <Compile Include="IServerCommand.cs" />
     <Compile Include="ListCommand.cs" />
     <Compile Include="Program.cs" />

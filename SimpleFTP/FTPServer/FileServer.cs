@@ -7,16 +7,20 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace FTPServer
 {
     public class FileServer
     {
         private readonly TcpListener listener;
+        private readonly IQueryParser parser;
+        private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
 
-        public FileServer(int port)
+        public FileServer(int port, IQueryParser parser)
         {
             listener = new TcpListener(IPAddress.Any, port);
+            this.parser = parser;
         }
 
         public async Task Run()
@@ -30,6 +34,11 @@ namespace FTPServer
             }
         }
 
+        public void Shutdown()
+        {
+
+        }
+
         private void HandleQuery(TcpClient client)
         {
             Task.Run(async () =>
@@ -39,29 +48,10 @@ namespace FTPServer
                     var reader = new StreamReader(client.GetStream());
                     var data = await reader.ReadLineAsync();
                     Console.WriteLine(data);
-                    await ParseQuery(data).Execute(client.GetStream());
+                    await parser.ParseQuery(data).Execute(client.GetStream());
                 }
 
-            });
-        }
-
-        private IServerCommand ParseQuery(string data)
-        {
-            var match = Regex.Match(data, "(?<code>\\d) (?<path>.+)");
-            
-            switch (int.Parse(match.Groups["code"].Value))
-            {
-                case 1:
-                {
-                    return new ListCommand(match.Groups["path"].Value);
-                }
-                case 2:
-                {
-                    return new GetCommand(match.Groups["path"].Value);
-                }
-            }
-
-            return null;
+            }, tokenSource.Token);
         }
     }
 }
