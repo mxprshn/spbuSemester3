@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FTPServer
 {
-    class FileQueryParser
+    public class FileQueryParser : IQueryParser
     {
         public IServerCommand ParseQuery(string data)
         {

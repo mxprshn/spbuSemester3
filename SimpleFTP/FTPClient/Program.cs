@@ -11,7 +11,7 @@ namespace FTPClient
     {
         static async Task Main(string[] args)
         {
-            var client = new FileClient(8888);
+            var client = new FileClient(new Client(8888));
 
             while (true)
             {

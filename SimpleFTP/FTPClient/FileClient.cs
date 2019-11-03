@@ -9,47 +9,31 @@ using System.Threading.Tasks;
 
 namespace FTPClient
 {
-
     public class FileClient
     {
-        private TcpClient client;
+        private IClient client;
 
-        public FileClient(int port, string hostname = "localhost")
+        public FileClient(IClient client)
         {
-            client = new TcpClient(hostname, port);
+            this.client = client;
         }
 
         public async Task ListFiles(string path)
         {
-            var stream = client.GetStream();
-            // using?
-            var writer = new StreamWriter(stream);
-            await writer.WriteLineAsync(BuildListQuery(path));
-            writer.Flush();
-
-            var reader = new StreamReader(stream);
-            var data = await reader.ReadLineAsync();
-            Console.WriteLine(data);
+            await client.Send(BuildListQuery(path));
+            Console.WriteLine(await client.Receive());
         }
 
         public async Task GetFile(string path)
         {
-            var stream = client.GetStream();
-            // using?
-            var writer = new StreamWriter(stream);
-            await writer.WriteLineAsync(BuildGetQuery(path));
-            writer.Flush();
-
-            var reader = new StreamReader(stream);
-            var data = await reader.ReadLineAsync();
-            Console.WriteLine(data);
+            await client.Send(BuildGetQuery(path));
+            Console.WriteLine(await client.Receive());
         }
 
         //private IList<FileInformation> ParseListResponse(string response)
         //{
         //    var match = Regex.Match(response, "(?<size>\\d)(?<path> .+ (?<isDir>false|true))+");
         //}
-        //public void GetFile(string path)
 
         ////public async Task GetFile()
         ////{
