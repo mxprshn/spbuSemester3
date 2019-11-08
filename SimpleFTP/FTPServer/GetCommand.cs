@@ -19,31 +19,32 @@ namespace FTPServer
 
         public async Task Execute(NetworkStream stream)
         {
-            string responseString = "";
+            var response = new byte[0];
             var fileInfo = new FileInfo(path);
-
-            var data = File.ReadAllBytes(path);
 
             try
             {
-                
-                responseString = $"{fileInfo.Length} {Encoding.Default.GetString(data)}";
+                var content = new byte[fileInfo.Length];
+                var header = Encoding.UTF8.GetBytes($"{fileInfo.Length} ");
 
-                //using (var reader = new StreamReader(new FileStream(path, FileMode.Open)))
-                //{
-                //    var content = await reader.ReadAllBytes();
-                //    responseString = $"{fileInfo.Length} {content}";
-                //}
+                using (var fileStream = new FileStream(path, FileMode.Open))
+                {
+                    await fileStream.ReadAsync(content);
+                    //responseString = $"{fileInfo.Length} {content}";
+                }
+
+                Array.Resize(ref response, content.Length + header.Length);
+                Array.Copy(header, 0, response, 0, header.Length);
+                Array.Copy(content, 0, response, header.Length, content.Length);
             }
             catch (FileNotFoundException exception)
             {
-                responseString = "-1";
+                response = Encoding.UTF8.GetBytes("-1");
             }
             finally
             {
-                var writer = new BinaryWriter(stream);
-                writer.Write(data, 0, (int)fileInfo.Length);
-                writer.Flush();
+                await stream.WriteAsync(response);
+                await stream.FlushAsync();
             }
         }
     }

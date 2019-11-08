@@ -26,13 +26,13 @@ namespace FTPClient
                     case ConsoleKey.D1:
                         {
                             Console.Write("Enter directory path to list files: ");
-                            await client.ListFiles(Console.ReadLine());
+                            await client.List(Console.ReadLine());
                             break;
                         }
                     case ConsoleKey.D2:
                         {
                             Console.Write("Enter file path: ");
-                            await client.GetFile(Console.ReadLine());
+                            await client.Get(Console.ReadLine());
                             break;
                         }
                     case ConsoleKey.Escape:

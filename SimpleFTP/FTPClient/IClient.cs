@@ -9,6 +9,6 @@ namespace FTPClient
     public interface IClient
     {
         Task Send(string query);
-        Task<string> Receive();
+        Task<byte[]> Receive();
     }
 }

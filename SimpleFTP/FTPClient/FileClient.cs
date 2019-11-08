@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FTPClient
@@ -18,27 +17,46 @@ namespace FTPClient
             this.client = client;
         }
 
-        public async Task ListFiles(string path)
+        public async Task List(string path)
         {
             await client.Send(BuildListQuery(path));
-            Console.WriteLine(await client.Receive());
+            var fileInfo = ParseListResponse(Encoding.UTF8.GetString(await client.Receive()));
+
+            foreach (var current in fileInfo)
+            {
+                Console.WriteLine($"{current.Name} {current.IsDirectory}");
+            }
         }
 
-        public async Task GetFile(string path)
+        public async Task Get(string path)
         {
             await client.Send(BuildGetQuery(path));
-            Console.WriteLine(await client.Receive());
+            var response = await client.Receive();
+            //Console.WriteLine(await client.Receive());
+
+            using (var fileStream = new FileStream($"C:\\Users\\mxprshn\\Downloads\\olollo.jpg", FileMode.OpenOrCreate))
+            {
+                await fileStream.WriteAsync(response);
+            }
         }
 
-        //private IList<FileInformation> ParseListResponse(string response)
-        //{
-        //    var match = Regex.Match(response, "(?<size>\\d)(?<path> .+ (?<isDir>false|true))+");
-        //}
+        private IList<FileInformation> ParseListResponse(string response)
+        {
+            var matches = Regex.Matches(response, " (?<name>.*?) (?<isDir>false|true)");
+            var result = new List<FileInformation>();
 
-        ////public async Task GetFile()
-        ////{
-        ////    return null;
-        ////}
+            foreach (Match match in matches)
+            {
+                result.Add(new FileInformation(match.Groups["name"].Value, bool.Parse(match.Groups["isDir"].Value)));
+            }
+
+            return result;
+        }
+
+        //public async Task GetFile()
+        //{
+        //    return null;
+        //}
 
         private string BuildListQuery(string path) => $"1 {path}";
         private string BuildGetQuery(string path) => $"2 {path}";
