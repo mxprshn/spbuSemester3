@@ -30,7 +30,6 @@ namespace FTPServer
                 using (var fileStream = new FileStream(path, FileMode.Open))
                 {
                     await fileStream.ReadAsync(content);
-                    //responseString = $"{fileInfo.Length} {content}";
                 }
 
                 Array.Resize(ref response, content.Length + header.Length);

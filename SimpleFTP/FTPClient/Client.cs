@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -29,8 +28,7 @@ namespace FTPClient
             var stream = tcpClient.GetStream();
             var result = new byte[0];
 
-            // сделать более умный дилей
-            await Task.Delay(100);
+            await WaitForData(stream);
 
             while (stream.DataAvailable)
             {
@@ -50,9 +48,25 @@ namespace FTPClient
             return result;
         }
 
+        private async Task WaitForData(NetworkStream stream)
+        {
+            var delay = TimeSpan.FromMilliseconds(100);
+
+            for (var i = 0; i < 10; ++i)
+            {
+                if (stream.DataAvailable)
+                {
+                    return;
+                }
+
+                await Task.Delay(delay);
+                delay *= 2;
+            }
+        }
+
         public async Task Send(string data)
         {
-            var writer = new StreamWriter(tcpClient.GetStream());
+            var writer = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8);
             await writer.WriteLineAsync(data);
             await writer.FlushAsync();
         }

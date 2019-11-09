@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace FTPClient
 {
-    public interface IClient
+    public interface IClient : IDisposable
     {
-        Task Send(string query);
+        Task Send(string data);
         Task<byte[]> Receive();
     }
 }

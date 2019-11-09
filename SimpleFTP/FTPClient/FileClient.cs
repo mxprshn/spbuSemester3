@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FTPClient
 {
-    public class FileClient
+    public class FileClient : IDisposable
     {
         private IClient client;
 
@@ -17,33 +17,37 @@ namespace FTPClient
             this.client = client;
         }
 
-        public async Task List(string path)
+        public async Task<IList<FileInformation>> List(string dirPath)
         {
-            await client.Send(BuildListQuery(path));
-            var fileInfo = ParseListResponse(Encoding.UTF8.GetString(await client.Receive()));
-
-            foreach (var current in fileInfo)
-            {
-                Console.WriteLine($"{current.Name} {current.IsDirectory}");
-            }
+            await client.Send(BuildListQuery(dirPath));
+            return ParseListResponse(Encoding.UTF8.GetString(await client.Receive()));
         }
 
-        public async Task Get(string path)
+        public async Task Get(string sourcePath, string targetPath)
         {
-            await client.Send(BuildGetQuery(path));
-            var response = await client.Receive();
-            //Console.WriteLine(await client.Receive());
+            // проверить пути на корректность
 
-            using (var fileStream = new FileStream($"C:\\Users\\mxprshn\\Downloads\\olollo.jpg", FileMode.OpenOrCreate))
+            await client.Send(BuildGetQuery(sourcePath));
+            var response = await client.Receive();
+            var responseString = Encoding.UTF8.GetString(response);
+            var match = Regex.Match(responseString, "\\d+ ");
+            var header = Encoding.UTF8.GetBytes(match.Value);
+
+            var content = new byte[response.Length - header.Length];
+
+            Array.Copy(response, header.Length, content, 0, content.Length);
+
+            using (var fileStream = new FileStream(targetPath, FileMode.OpenOrCreate))
             {
-                await fileStream.WriteAsync(response);
+                await fileStream.WriteAsync(content);
             }
         }
 
         private IList<FileInformation> ParseListResponse(string response)
         {
-            var matches = Regex.Matches(response, " (?<name>.*?) (?<isDir>false|true)");
             var result = new List<FileInformation>();
+
+            var matches = Regex.Matches(response, " (?<name>.*?) (?<isDir>false|true)");
 
             foreach (Match match in matches)
             {
@@ -53,12 +57,12 @@ namespace FTPClient
             return result;
         }
 
-        //public async Task GetFile()
-        //{
-        //    return null;
-        //}
-
         private string BuildListQuery(string path) => $"1 {path}";
         private string BuildGetQuery(string path) => $"2 {path}";
+
+        public void Dispose()
+        {
+            client.Dispose();
+        }
     }
 }

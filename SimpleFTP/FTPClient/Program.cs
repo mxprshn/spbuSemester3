@@ -11,34 +11,41 @@ namespace FTPClient
     {
         static async Task Main(string[] args)
         {
-            var client = new FileClient(new Client(8888));
-
-            while (true)
+            using (var client = new FileClient(new Client(8888)))
             {
-                Console.Write("Enter command: ");
-
-                var key = Console.ReadKey();
-
-                Console.WriteLine();
-
-                switch (key.Key)
+                while (true)
                 {
-                    case ConsoleKey.D1:
-                        {
-                            Console.Write("Enter directory path to list files: ");
-                            await client.List(Console.ReadLine());
-                            break;
-                        }
-                    case ConsoleKey.D2:
-                        {
-                            Console.Write("Enter file path: ");
-                            await client.Get(Console.ReadLine());
-                            break;
-                        }
-                    case ConsoleKey.Escape:
-                        {
-                            return;
-                        }
+                    Console.Write("Enter command: ");
+
+                    var key = Console.ReadKey();
+
+                    Console.WriteLine();
+
+                    switch (key.Key)
+                    {
+                        case ConsoleKey.D1:
+                            {
+                                Console.Write("Enter directory path to list files: ");
+                                foreach (var current in await client.List(Console.ReadLine()))
+                                {
+                                    Console.WriteLine($"{current.Name} {current.IsDirectory}");
+                                }
+                                break;
+                            }
+                        case ConsoleKey.D2:
+                            {
+                                Console.Write("Enter source path: ");
+                                var sourcePath = Console.ReadLine();
+                                Console.Write("Enter target path: ");
+                                var targetPath = Console.ReadLine();
+                                await client.Get(sourcePath, targetPath);
+                                break;
+                            }
+                        case ConsoleKey.Escape:
+                            {
+                                return;
+                            }
+                    }
                 }
             }
         }
