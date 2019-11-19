@@ -49,7 +49,7 @@ namespace FTPServer
             {
                 var writer = new StreamWriter(stream);
                 await writer.WriteLineAsync(responseString);
-                writer.Flush();
+                await writer.FlushAsync();
             }
         }
     }

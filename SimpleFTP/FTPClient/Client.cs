@@ -10,11 +10,18 @@ namespace FTPClient
     public class Client : IClient, IDisposable
     {
         private TcpClient tcpClient;
-        private const int bufferSize = 1024;
+        private const string defaultHost = "localhost";
 
-        public Client(int port, string hostname = "localhost")
+        public Client(int port, string hostname = defaultHost)
         {
-            tcpClient = new TcpClient(hostname, port);
+            try
+            {
+                tcpClient = new TcpClient(hostname, port);
+            }
+            catch (SocketException e)
+            {
+                throw new ConnectionToServerException(e.Message, e);
+            }
         }
 
         public void Dispose()
@@ -27,22 +34,30 @@ namespace FTPClient
         {
             var stream = tcpClient.GetStream();
             var result = new byte[0];
+            var bufferSize = tcpClient.ReceiveBufferSize;
 
-            await WaitForData(stream);
-
-            while (stream.DataAvailable)
+            try
             {
-                var data = new byte[bufferSize];
-                var bytesRead = await stream.ReadAsync(data, 0, bufferSize);
+                await WaitForData(stream);
 
-                if (bytesRead < bufferSize)
+                while (stream.DataAvailable)
                 {
-                    Array.Resize(ref data, bytesRead);
-                }
+                    var data = new byte[bufferSize];
+                    var bytesRead = await stream.ReadAsync(data, 0, bufferSize);
 
-                var previousLength = result.Length;
-                Array.Resize(ref result, result.Length + data.Length);
-                Array.Copy(data, 0, result, previousLength, data.Length);
+                    if (bytesRead < bufferSize)
+                    {
+                        Array.Resize(ref data, bytesRead);
+                    }
+
+                    var previousLength = result.Length;
+                    Array.Resize(ref result, result.Length + data.Length);
+                    Array.Copy(data, 0, result, previousLength, data.Length);
+                }
+            }
+            catch (Exception e) when (e is SocketException || e is IOException)
+            {
+                throw new ConnectionToServerException(e.Message, e);
             }
 
             return result;
@@ -54,21 +69,51 @@ namespace FTPClient
 
             for (var i = 0; i < 10; ++i)
             {
-                if (stream.DataAvailable)
+                try
                 {
-                    return;
+                    if (stream.DataAvailable)
+                    {
+                        return;
+                    }
                 }
+                catch { }
 
                 await Task.Delay(delay);
                 delay *= 2;
             }
         }
 
-        public async Task Send(string data)
+        private async Task TryToWriteData(StreamWriter writer, string data)
+        {
+            var delay = TimeSpan.FromMilliseconds(100);
+
+            for (var i = 0; i < 10; ++i)
+            {
+                try
+                {
+                    await writer.WriteLineAsync(data);
+                    await writer.FlushAsync();
+                    return;
+                }
+                catch { }
+
+                await Task.Delay(delay);
+                delay *= 2;
+            }
+        }
+
+        public async Task Send(string data) // IOException
         {
             var writer = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8);
-            await writer.WriteLineAsync(data);
-            await writer.FlushAsync();
+
+            try
+            {
+                await TryToWriteData(writer, data);
+            }
+            catch (Exception e) when (e is SocketException || e is IOException)
+            {
+                throw new ConnectionToServerException(e.Message, e);
+            }
         }
     }
 }
