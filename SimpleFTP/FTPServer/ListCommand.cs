@@ -11,15 +11,17 @@ namespace FTPServer
     class ListCommand : IServerCommand
     {
         private string path;
+        private TcpClient client;
 
-        public ListCommand(string path)
+        public ListCommand(string path, TcpClient client)
         {
             this.path = path;
+            this.client = client;
         }
 
-        public async Task Execute(NetworkStream stream)
+        public async Task Execute()
         {
-            string responseString = "";
+            string responseString = "-2";
 
             try
             {
@@ -37,17 +39,18 @@ namespace FTPServer
                     dirNames[i] += " true";
                 }
 
-                // нужно наверное убрать пробел в конце
-                responseString = $"{fileCount} {String.Join(" ", fileNames)} {String.Join(" ", dirNames)}";
+                var filesString = $"{(fileNames.Length == 0 ? "" : " ")}{String.Join(" ", fileNames)}";
+                var dirsString = $"{(dirNames.Length == 0 ? "" : " ")}{String.Join(" ", dirNames)}";
+                responseString = $"{fileCount}{dirsString}";
 
             }
-            catch (DirectoryNotFoundException exception)
+            catch (DirectoryNotFoundException)
             {
                 responseString = "-1";
             }
             finally
             {
-                var writer = new StreamWriter(stream);
+                var writer = new StreamWriter(client.GetStream());
                 await writer.WriteLineAsync(responseString);
                 await writer.FlushAsync();
             }

@@ -11,8 +11,8 @@ namespace FTPServer
     {
         static async Task Main(string[] args)
         {
-            var server = new FileServer(8888, new FileQueryParser());
-            var tokenSource = new CancellationTokenSource();
+            FileServer server = null;
+            server = new FileServer(8888, new FileQueryParser());
             await server.Run();
         }
     }

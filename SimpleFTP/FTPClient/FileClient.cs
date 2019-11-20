@@ -24,9 +24,16 @@ namespace FTPClient
 
             var match = Regex.Match(responseString, "-?\\d+ ");
 
-            if (match.Value == "-1")
+            switch (match.Value)
             {
-                throw new DirectoryNotFoundException("Directory on server not found.");
+                case "-1":
+                    {
+                        throw new DirectoryNotFoundException("Directory on server not found.");
+                    }
+                case "-2":
+                    {
+                        throw new ArgumentException("Invalid directory name or access denied.");
+                    }
             }
 
             return ParseListResponse(responseString);
@@ -53,9 +60,16 @@ namespace FTPClient
             var responseString = Encoding.UTF8.GetString(response);
             var match = Regex.Match(responseString, "-?\\d+ ");
 
-            if (match.Value == "-1")
+            switch (match.Value)
             {
-                throw new FileNotFoundException("File on server not found.");
+                case "-1":
+                    {
+                        throw new FileNotFoundException("File on server not found.");
+                    }
+                case "-2":
+                    {
+                        throw new ArgumentException("Invalid file name or access denied.");
+                    }
             }
 
             var header = Encoding.UTF8.GetBytes(match.Value);
@@ -86,9 +100,15 @@ namespace FTPClient
 
         private string BuildListQuery(string path) => $"1 {path}";
         private string BuildGetQuery(string path) => $"2 {path}";
+        private string BuildDisconnectQuery() => "$bye";
 
-        public void Dispose()
+        public async void Dispose()
         {
+            if (client.IsConnected)
+            {
+                await client.Send(BuildDisconnectQuery());
+            }
+            
             client.Dispose();
         }
     }

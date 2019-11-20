@@ -8,6 +8,7 @@ namespace FTPClient
 {
     public interface IClient : IDisposable
     {
+        bool IsConnected { get; }
         Task Send(string data);
         Task<byte[]> Receive();
     }

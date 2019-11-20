@@ -11,6 +11,7 @@ namespace FTPClient
     {
         private TcpClient tcpClient;
         private const string defaultHost = "localhost";
+        public bool IsConnected => tcpClient.Connected;
 
         public Client(int port, string hostname = defaultHost)
         {
@@ -26,8 +27,8 @@ namespace FTPClient
 
         public void Dispose()
         {
-            tcpClient.GetStream().Close();
             tcpClient.Close();
+            tcpClient.Dispose();
         }
 
         public async Task<byte[]> Receive()
@@ -102,7 +103,7 @@ namespace FTPClient
             }
         }
 
-        public async Task Send(string data) // IOException
+        public async Task Send(string data)
         {
             var writer = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8);
 

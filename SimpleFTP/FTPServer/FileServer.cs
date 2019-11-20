@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Threading;
+using System.Collections.Concurrent;
 
 namespace FTPServer
 {
@@ -11,25 +12,29 @@ namespace FTPServer
     {
         private readonly TcpListener listener;
         private readonly IQueryParser parser;
-        private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
+        private ConcurrentDictionary<TcpClient, (CancellationTokenSource tokenSource, string id)> clients = new ConcurrentDictionary<TcpClient, (CancellationTokenSource, string)>();
+        private int idCounter;
         public bool IsRunning { get; private set; } = false;
 
         public FileServer(int port, IQueryParser parser)
         {
             listener = new TcpListener(IPAddress.Any, port);
             this.parser = parser;
+            parser.Server = this;
         }
 
         public async Task Run()
         {
-            listener.Start(); // исключения?)
+            listener.Start();
 
             Console.WriteLine("Server is launched.");
 
             while (true)
             {
-                var client = await listener.AcceptTcpClientAsync();
-                Console.WriteLine("New client connected.");
+                var client = await listener.AcceptTcpClientAsync();                
+                ++idCounter;
+                clients.TryAdd(client, (new CancellationTokenSource(), idCounter.ToString()));
+                Console.WriteLine($"{idCounter.ToString()}: Client connected.");
                 HandleQuery(client);
             }
         }
@@ -42,37 +47,62 @@ namespace FTPServer
             }
 
             Console.WriteLine("Stopping server...");
-            tokenSource.Cancel();
             listener.Stop();
             IsRunning = false;
         }
 
         private void HandleQuery(TcpClient client)
         {
-            var token = tokenSource.Token;
+            clients.TryGetValue(client, out var clientInfo);
+            var token = clientInfo.tokenSource.Token;
+            var id = clientInfo.id;
 
             Task.Run(async () =>
             {
                 while (true)
                 {
-                    token.ThrowIfCancellationRequested();
+                    if (token.IsCancellationRequested)
+                    {
+                        Console.WriteLine($"{id}: Client disconnected.");
+                        clients.TryRemove(client, out var source);
+                        return;
+                    }
 
                     try
                     {
                         var reader = new StreamReader(client.GetStream());
                         var data = await reader.ReadLineAsync();
-                        Console.WriteLine(data);
-                        await parser.ParseQuery(data).Execute(client.GetStream());
+
+                        Console.WriteLine($"{id}: {data}");
+
+                        var command = parser.ParseQuery(data, client);
+
+                        if (command != null)
+                        {
+                            await command.Execute();
+                        }
+                        
                     }
-                    catch (Exception e) when ((e is InvalidOperationException || e is ObjectDisposedException
-                            || e is IOException))
+                    catch (Exception e) when (e is InvalidOperationException || e is ObjectDisposedException
+                            || e is IOException)
                     {
-                        Console.WriteLine("Client disconnected.");
+                        Console.WriteLine($"{id}: Client disconnected with error: {e.Message}");
+                        clients.TryRemove(client, out var source);
                         return;
                     }
                 }
 
             }, token);
+        }
+
+        public void DisconnectClient(TcpClient client)
+        {
+            if (!clients.TryGetValue(client, out var clientInfo))
+            {
+                throw new InvalidOperationException("Client was not connected.");
+            }
+
+            clientInfo.tokenSource.Cancel();
         }
     }
 }

@@ -9,6 +9,6 @@ namespace FTPServer
 {
     public interface IServerCommand
     {
-        Task Execute(NetworkStream stream);
+        Task Execute();
     }
 }
