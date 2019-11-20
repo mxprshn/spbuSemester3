@@ -9,11 +9,15 @@ namespace FTPServer
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             FileServer server = null;
             server = new FileServer(8888, new FileQueryParser());
-            await server.Run();
+            server.Run();
+
+            var key = Console.ReadKey();
+            server.Shutdown();
+            var key1 = Console.ReadKey();
         }
     }
 }

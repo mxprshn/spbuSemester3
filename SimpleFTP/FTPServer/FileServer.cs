@@ -13,8 +13,9 @@ namespace FTPServer
         private readonly TcpListener listener;
         private readonly IQueryParser parser;
         private ConcurrentDictionary<TcpClient, (CancellationTokenSource tokenSource, string id)> clients = new ConcurrentDictionary<TcpClient, (CancellationTokenSource, string)>();
+        private CancellationTokenSource parentTokenSource;
         private int idCounter;
-        public bool IsRunning { get; private set; } = false;
+        private bool isLaunched = false;
 
         public FileServer(int port, IQueryParser parser)
         {
@@ -23,32 +24,37 @@ namespace FTPServer
             parser.Server = this;
         }
 
-        public async Task Run()
+        public void Run()
         {
+            parentTokenSource = new CancellationTokenSource();
             listener.Start();
-
             Console.WriteLine("Server is launched.");
+            isLaunched = true;
 
-            while (true)
+            Task.Run(async () =>
             {
-                var client = await listener.AcceptTcpClientAsync();                
-                ++idCounter;
-                clients.TryAdd(client, (new CancellationTokenSource(), idCounter.ToString()));
-                Console.WriteLine($"{idCounter.ToString()}: Client connected.");
-                HandleQuery(client);
-            }
+                while (true)
+                {
+                    var client = await listener.AcceptTcpClientAsync();
+                    ++idCounter;
+                    clients.TryAdd(client, (CancellationTokenSource.CreateLinkedTokenSource(parentTokenSource.Token), idCounter.ToString()));
+                    Console.WriteLine($"{idCounter.ToString()}: Client connected.");
+                    HandleQuery(client);
+                }
+            });
         }
 
         public void Shutdown()
         {
-            if (!IsRunning)
+            if (!isLaunched)
             {
                 throw new InvalidOperationException("Server was not running.");
             }
 
             Console.WriteLine("Stopping server...");
+            parentTokenSource.Cancel();
             listener.Stop();
-            IsRunning = false;
+            isLaunched = false;
         }
 
         private void HandleQuery(TcpClient client)
