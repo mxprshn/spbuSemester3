@@ -19,7 +19,7 @@ namespace FTPServer
 
         public async Task Execute()
         {
-            server.DisconnectClient(client);
+            server.RequestDisconnection(client);
         }
     }
 }

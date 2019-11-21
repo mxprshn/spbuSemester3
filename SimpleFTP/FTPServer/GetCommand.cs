@@ -19,7 +19,7 @@ namespace FTPServer
 
         public async Task Execute()
         {
-            var response = Encoding.UTF8.GetBytes("-2");
+            var response = new byte[0];
             var fileInfo = new FileInfo(path);
 
             try
@@ -40,12 +40,15 @@ namespace FTPServer
             {
                 response = Encoding.UTF8.GetBytes("-1");
             }
-            finally
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException
+                    || e is ArgumentException || e is PathTooLongException)
             {
-                var stream = client.GetStream();
-                await stream.WriteAsync(response);
-                await stream.FlushAsync();
+                response = Encoding.UTF8.GetBytes("-2");
             }
+
+            var stream = client.GetStream();
+            await stream.WriteAsync(response);
+            await stream.FlushAsync();
         }
     }
 }

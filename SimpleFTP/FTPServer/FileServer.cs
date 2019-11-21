@@ -15,7 +15,6 @@ namespace FTPServer
         private ConcurrentDictionary<TcpClient, (CancellationTokenSource tokenSource, string id)> clients = new ConcurrentDictionary<TcpClient, (CancellationTokenSource, string)>();
         private CancellationTokenSource parentTokenSource;
         private int idCounter;
-        private bool isLaunched = false;
 
         public FileServer(int port, IQueryParser parser)
         {
@@ -24,37 +23,20 @@ namespace FTPServer
             parser.Server = this;
         }
 
-        public void Run()
+        public async Task Run()
         {
             parentTokenSource = new CancellationTokenSource();
             listener.Start();
             Console.WriteLine("Server is launched.");
-            isLaunched = true;
 
-            Task.Run(async () =>
+            while (true)
             {
-                while (true)
-                {
-                    var client = await listener.AcceptTcpClientAsync();
-                    ++idCounter;
-                    clients.TryAdd(client, (CancellationTokenSource.CreateLinkedTokenSource(parentTokenSource.Token), idCounter.ToString()));
-                    Console.WriteLine($"{idCounter.ToString()}: Client connected.");
-                    HandleQuery(client);
-                }
-            });
-        }
-
-        public void Shutdown()
-        {
-            if (!isLaunched)
-            {
-                throw new InvalidOperationException("Server was not running.");
+                var client = await listener.AcceptTcpClientAsync();
+                ++idCounter;
+                clients.TryAdd(client, (CancellationTokenSource.CreateLinkedTokenSource(parentTokenSource.Token), idCounter.ToString()));
+                Console.WriteLine($"{idCounter.ToString()}: Client connected.");
+                HandleQuery(client);
             }
-
-            Console.WriteLine("Stopping server...");
-            parentTokenSource.Cancel();
-            listener.Stop();
-            isLaunched = false;
         }
 
         private void HandleQuery(TcpClient client)
@@ -101,7 +83,7 @@ namespace FTPServer
             }, token);
         }
 
-        public void DisconnectClient(TcpClient client)
+        public void RequestDisconnection(TcpClient client)
         {
             if (!clients.TryGetValue(client, out var clientInfo))
             {

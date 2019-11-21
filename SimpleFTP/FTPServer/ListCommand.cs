@@ -21,7 +21,7 @@ namespace FTPServer
 
         public async Task Execute()
         {
-            string responseString = "-2";
+            string responseString = "";
 
             try
             {
@@ -48,12 +48,15 @@ namespace FTPServer
             {
                 responseString = "-1";
             }
-            finally
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException
+                    || e is ArgumentException || e is PathTooLongException)
             {
-                var writer = new StreamWriter(client.GetStream());
-                await writer.WriteLineAsync(responseString);
-                await writer.FlushAsync();
+                responseString = "-2"; 
             }
+
+            var writer = new StreamWriter(client.GetStream());
+            await writer.WriteLineAsync(responseString);
+            await writer.FlushAsync();
         }
     }
 }

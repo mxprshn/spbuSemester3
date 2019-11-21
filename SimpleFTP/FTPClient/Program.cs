@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -29,37 +30,56 @@ namespace FTPClient
 
                         Console.WriteLine();
 
-                        switch (key.Key)
+                        try
                         {
-                            case ConsoleKey.D1:
-                                {
-                                    Console.Write("Enter directory path to list files: ");
-                                    foreach (var current in await client.List(Console.ReadLine()))
+                            switch (key.Key)
+                            {
+                                case ConsoleKey.D1:
                                     {
-                                        Console.WriteLine($"{current.Name} {current.IsDirectory}");
+                                        Console.Write("Enter directory path to list files: ");
+                                        foreach (var current in await client.List(Console.ReadLine()))
+                                        {
+                                            Console.WriteLine($"{current.Name} {current.IsDirectory}");
+                                        }
+                                        break;
                                     }
-                                    break;
-                                }
-                            case ConsoleKey.D2:
-                                {
-                                    Console.Write("Enter source path: ");
-                                    var sourcePath = Console.ReadLine();
-                                    Console.Write("Enter target path: ");
-                                    var targetPath = Console.ReadLine();
-                                    await client.Get(sourcePath, targetPath);
-                                    break;
-                                }
-                            case ConsoleKey.Escape:
-                                {
-                                    return;
-                                }
+                                case ConsoleKey.D2:
+                                    {
+                                        Console.Write("Enter source path: ");
+                                        var sourcePath = Console.ReadLine();
+                                        Console.Write("Enter target path: ");
+                                        var targetPath = Console.ReadLine();
+                                        await client.Get(sourcePath, targetPath);
+                                        break;
+                                    }
+                                case ConsoleKey.Escape:
+                                    {
+                                        return;
+                                    }
+                            }
+                        }
+                        catch (ConnectionToServerException e)
+                        {
+                            Console.WriteLine($"CONNECTION ERROR: {e.Message}");
+                        }
+                        catch (ArgumentException e)
+                        {
+                            Console.WriteLine($"ERROR: {e.Message}");
+                        }
+                        catch (DirectoryNotFoundException)
+                        {
+                            Console.WriteLine($"Directory does not exist.");
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            Console.WriteLine($"File not found.");
                         }
                     }
                 }
             }
             catch (ConnectionToServerException e)
             {
-                Console.WriteLine($"ERROR: {e.Message}");
+                Console.WriteLine($"CONNECTION ERROR: {e.Message}");
             }            
         }
     }
