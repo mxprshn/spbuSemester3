@@ -11,6 +11,6 @@ before_build:
 build_script:
   - msbuild %solution_path%
 
-test-script:
+test_script:
   - dotnet test --test-adapter-path:. --logger:Appveyor SimpleFTP\FTPServer.Tests\FTPServer.Tests.csproj
   - dotnet test --test-adapter-path:. --logger:Appveyor SimpleFTP\FTPClient.Tests\FTPClient.Tests.csproj
