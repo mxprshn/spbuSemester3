@@ -10,3 +10,7 @@ before_build:
 
 build_script:
   - msbuild %solution_path%
+
+test-script:
+  - dotnet test SimpleFTP\FTPServer.Tests\FTPServer.Tests.csproj
+  - dotnet test SimpleFTP\FTPClient.Tests\FTPClient.Tests.csproj
