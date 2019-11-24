@@ -16,5 +16,17 @@ namespace FTPClient
             Name = name;
             IsDirectory = isDirectory;
         }
+
+        public override bool Equals(object obj)
+        {
+            var item = obj as FileInformation;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return (Name == item.Name) && (IsDirectory == item.IsDirectory);
+        }
     }
 }

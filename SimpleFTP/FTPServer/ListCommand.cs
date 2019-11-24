@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FTPServer
 {
-    class ListCommand : IServerCommand
+    public class ListCommand : IServerCommand
     {
         private string path;
         private TcpClient client;
@@ -41,7 +41,7 @@ namespace FTPServer
 
                 var filesString = $"{(fileNames.Length == 0 ? "" : " ")}{String.Join(" ", fileNames)}";
                 var dirsString = $"{(dirNames.Length == 0 ? "" : " ")}{String.Join(" ", dirNames)}";
-                responseString = $"{fileCount}{dirsString}";
+                responseString = $"{fileCount}{filesString}{dirsString}";
 
             }
             catch (DirectoryNotFoundException)

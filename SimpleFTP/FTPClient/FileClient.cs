@@ -22,7 +22,7 @@ namespace FTPClient
             var response = await client.Receive();
             var responseString = Encoding.UTF8.GetString(response);
 
-            var match = Regex.Match(responseString, "-?\\d+ ");
+            var match = Regex.Match(responseString, "-?\\d+");
 
             switch (match.Value)
             {
@@ -58,7 +58,8 @@ namespace FTPClient
             await client.Send(BuildGetQuery(sourcePath));
             var response = await client.Receive();
             var responseString = Encoding.UTF8.GetString(response);
-            var match = Regex.Match(responseString, "-?\\d+ ");
+
+            var match = Regex.Match(responseString, "-?\\d+ ?");
 
             switch (match.Value)
             {

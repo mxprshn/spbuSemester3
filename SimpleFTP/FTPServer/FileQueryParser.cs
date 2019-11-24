@@ -21,16 +21,19 @@ namespace FTPServer
 
             var match = Regex.Match(source, "(?<code>\\d) (?<path>.+)");
 
-            switch (int.Parse(match.Groups["code"].Value))
+            if (int.TryParse(match.Groups["code"].Value, out var result))
             {
-                case 1:
-                    {
-                        return new ListCommand(match.Groups["path"].Value, client);
-                    }
-                case 2:
-                    {
-                        return new GetCommand(match.Groups["path"].Value, client);
-                    }
+                switch (result)
+                {
+                    case 1:
+                        {
+                            return new ListCommand(match.Groups["path"].Value, client);
+                        }
+                    case 2:
+                        {
+                            return new GetCommand(match.Groups["path"].Value, client);
+                        }
+                }
             }
 
             return null;

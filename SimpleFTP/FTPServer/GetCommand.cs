@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FTPServer
 {
-    class GetCommand : IServerCommand
+    public class GetCommand : IServerCommand
     {
         private string path;
         private TcpClient client;

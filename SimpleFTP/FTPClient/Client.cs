@@ -68,7 +68,7 @@ namespace FTPClient
         {
             var delay = TimeSpan.FromMilliseconds(100);
 
-            for (var i = 0; i < 10; ++i)
+            for (var i = 0; i < 5; ++i)
             {
                 try
                 {
@@ -82,18 +82,19 @@ namespace FTPClient
                 await Task.Delay(delay);
                 delay *= 2;
             }
+
+            throw new ConnectionToServerException("Server connection timeout.");
         }
 
         private async Task TryToWriteData(StreamWriter writer, string data)
         {
             var delay = TimeSpan.FromMilliseconds(100);
 
-            for (var i = 0; i < 10; ++i)
+            for (var i = 0; i < 5; ++i)
             {
                 try
                 {
-                    await writer.WriteLineAsync(data);
-                    await writer.FlushAsync();
+                    await WriteData(writer, data);
                     return;
                 }
                 catch { }
@@ -101,14 +102,21 @@ namespace FTPClient
                 await Task.Delay(delay);
                 delay *= 2;
             }
+
+            await WriteData(writer, data);
+        }
+
+        private async Task WriteData(StreamWriter writer, string data)
+        {
+            await writer.WriteLineAsync(data);
+            await writer.FlushAsync();
         }
 
         public async Task Send(string data)
         {
-            var writer = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8);
-
             try
             {
+                var writer = new StreamWriter(tcpClient.GetStream());
                 await TryToWriteData(writer, data);
             }
             catch (Exception e) when (e is SocketException || e is IOException)

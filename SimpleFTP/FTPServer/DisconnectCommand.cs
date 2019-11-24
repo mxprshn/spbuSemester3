@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace FTPServer
 {
-    class DisconnectCommand : IServerCommand
+    public class DisconnectCommand : IServerCommand
     {
-        private FileServer server;
+        private IServer server;
         private TcpClient client;
 
-        public DisconnectCommand(FileServer server, TcpClient client)
+        public DisconnectCommand(IServer server, TcpClient client)
         {
             this.server = server;
             this.client = client;

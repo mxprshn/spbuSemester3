@@ -8,12 +8,11 @@ using System.Collections.Concurrent;
 
 namespace FTPServer
 {
-    public class FileServer
+    public class FileServer : IServer
     {
         private readonly TcpListener listener;
         private readonly IQueryParser parser;
         private ConcurrentDictionary<TcpClient, (CancellationTokenSource tokenSource, string id)> clients = new ConcurrentDictionary<TcpClient, (CancellationTokenSource, string)>();
-        private CancellationTokenSource parentTokenSource;
         private int idCounter;
 
         public FileServer(int port, IQueryParser parser)
@@ -25,7 +24,6 @@ namespace FTPServer
 
         public async Task Run()
         {
-            parentTokenSource = new CancellationTokenSource();
             listener.Start();
             Console.WriteLine("Server is launched.");
 
@@ -33,7 +31,7 @@ namespace FTPServer
             {
                 var client = await listener.AcceptTcpClientAsync();
                 ++idCounter;
-                clients.TryAdd(client, (CancellationTokenSource.CreateLinkedTokenSource(parentTokenSource.Token), idCounter.ToString()));
+                clients.TryAdd(client, (new CancellationTokenSource(), idCounter.ToString()));
                 Console.WriteLine($"{idCounter.ToString()}: Client connected.");
                 HandleQuery(client);
             }

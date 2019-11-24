@@ -3,9 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29411.138
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FTPClient", "FTPClient\FTPClient.csproj", "{A0D8860B-1BBB-4592-B3C4-8415056FC912}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FTPClient", "FTPClient\FTPClient.csproj", "{A0D8860B-1BBB-4592-B3C4-8415056FC912}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FTPServer", "FTPServer\FTPServer.csproj", "{FA387739-A545-4967-97DB-B899767EA2C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FTPServer", "FTPServer\FTPServer.csproj", "{FA387739-A545-4967-97DB-B899767EA2C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FTPServer.Tests", "FTPServer.Tests\FTPServer.Tests.csproj", "{169DEEE2-1877-4632-A394-319B519704C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FTPClient.Tests", "FTPClient.Tests\FTPClient.Tests.csproj", "{ACC5AC6B-537E-4551-83BA-9E1803582F2F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{FA387739-A545-4967-97DB-B899767EA2C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA387739-A545-4967-97DB-B899767EA2C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA387739-A545-4967-97DB-B899767EA2C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{169DEEE2-1877-4632-A394-319B519704C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{169DEEE2-1877-4632-A394-319B519704C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{169DEEE2-1877-4632-A394-319B519704C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{169DEEE2-1877-4632-A394-319B519704C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACC5AC6B-537E-4551-83BA-9E1803582F2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACC5AC6B-537E-4551-83BA-9E1803582F2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACC5AC6B-537E-4551-83BA-9E1803582F2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACC5AC6B-537E-4551-83BA-9E1803582F2F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
