@@ -1,14 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace FTPClient
 {
+    /// <summary>
+    /// Class containing information about a file or directory.
+    /// </summary>
     public class FileInformation
     {
+        /// <summary>
+        /// Gets file name.
+        /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// Determines whether object is directory or file.
+        /// </summary>
         public bool IsDirectory { get; }
 
         public FileInformation(string name, bool isDirectory)

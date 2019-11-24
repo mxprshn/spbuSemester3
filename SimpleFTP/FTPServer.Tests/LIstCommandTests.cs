@@ -1,16 +1,13 @@
 ﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FTPServer.Tests
 {
     [TestFixture]
-    class LIstCommandTests
+    class ListCommandTests
     {
         [Test]
         public async Task ExecuteTest()

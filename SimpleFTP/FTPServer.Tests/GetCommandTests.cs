@@ -1,7 +1,4 @@
-﻿using Moq;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
+﻿using NUnit.Framework;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -23,6 +20,7 @@ namespace FTPServer.Tests
         public async Task ExecuteTest(string data)
         {
             var targetPath = $"{TestContext.CurrentContext.TestDirectory}.\\test2.txt";
+            var listener = new TcpListener(IPAddress.Any, 8888);
 
             try
             {
@@ -31,7 +29,6 @@ namespace FTPServer.Tests
                     await writer.WriteAsync(data);
                 }
 
-                var listener = new TcpListener(IPAddress.Any, 8888);
                 listener.Start();
 
                 using (var client = new TcpClient("localhost", 8888))
@@ -49,12 +46,11 @@ namespace FTPServer.Tests
                         var expected = md5.ComputeHash(Encoding.UTF8.GetBytes($"{data.Length} {data}"));
                         CollectionAssert.AreEqual(expected, actual);
                     }
-
-                    listener.Stop();
                 }
             }
             finally
             {
+                listener.Stop();
                 File.Delete(targetPath);
             }
         }

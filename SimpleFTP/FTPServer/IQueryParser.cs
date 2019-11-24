@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Sockets;
 
 namespace FTPServer
 {
+    /// <summary>
+    /// Protocol query parser interface.
+    /// </summary>
     public interface IQueryParser
     {
-        FileServer Server { get; set; }
-
+        Server Server { get; set; }
         IServerCommand ParseQuery(string source, TcpClient client);
     }
 }

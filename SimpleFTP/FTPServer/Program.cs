@@ -1,18 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace FTPServer
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            var server = new FileServer(8888, new FileQueryParser());
-            await server.Run();
+            var server = new Server(8888, new FileQueryParser());
+            server.Run();
+
+            Console.WriteLine("<<< Server launched.\n" +
+                "<<< Press 'Esc' to exit.\n");
+
+            while (true)
+            {
+                var key = Console.ReadKey();
+
+                if (key.Key == ConsoleKey.Escape)
+                {
+                    server.Shutdown();
+                    return;
+                }
+            }
         }
     }
 }

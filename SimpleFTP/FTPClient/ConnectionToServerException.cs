@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FTPClient
 {
@@ -11,6 +9,6 @@ namespace FTPClient
         public ConnectionToServerException(string message) : base(message) { }
         public ConnectionToServerException(string message, Exception inner) : base(message, inner) { }
         protected ConnectionToServerException(System.Runtime.Serialization.SerializationInfo info,
-            System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+                System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }

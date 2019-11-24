@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FTPClient
 {
+    /// <summary>
+    /// Network client interface for various tasks and protocols.
+    /// </summary>
     public interface IClient : IDisposable
     {
         bool IsConnected { get; }

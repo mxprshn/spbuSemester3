@@ -6,17 +6,28 @@ using System.Threading.Tasks;
 
 namespace FTPServer
 {
+    /// <summary>
+    /// Gets a particular file from server.
+    /// </summary>
     public class GetCommand : IServerCommand
     {
         private string path;
         private TcpClient client;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="path">Target file path.</param>
+        /// <param name="client">Client to send response.</param>
         public GetCommand(string path, TcpClient client)
         {
             this.path = path;
             this.client = client;
         }
 
+        /// <summary>
+        /// Sends query with file contents and size to client.
+        /// </summary>
         public async Task Execute()
         {
             var response = new byte[0];

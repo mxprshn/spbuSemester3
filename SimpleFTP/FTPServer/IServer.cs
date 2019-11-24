@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Sockets;
 
 namespace FTPServer
 {
+    /// <summary>
+    /// Network server interface for various tasks and protocols.
+    /// </summary>
     public interface IServer
     {
-        Task Run();
+        void Run();
+        void Shutdown();
         void RequestDisconnection(TcpClient client);
     }
 }

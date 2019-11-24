@@ -8,33 +8,68 @@ using System.Collections.Concurrent;
 
 namespace FTPServer
 {
-    public class FileServer : IServer
+    /// <summary>
+    /// Class implementing a network server for various tasks and protocols.
+    /// </summary>
+    public class Server : IServer
     {
         private readonly TcpListener listener;
         private readonly IQueryParser parser;
         private ConcurrentDictionary<TcpClient, (CancellationTokenSource tokenSource, string id)> clients = new ConcurrentDictionary<TcpClient, (CancellationTokenSource, string)>();
+        private CancellationTokenSource parentTokenSource;
+        private Task mainTask;
         private int idCounter;
 
-        public FileServer(int port, IQueryParser parser)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="port">The port on which to listen for incoming connection attempts.></param>
+        /// <param name="parser">Parser used to parse incoming queries.</param>
+        public Server(int port, IQueryParser parser)
         {
             listener = new TcpListener(IPAddress.Any, port);
             this.parser = parser;
             parser.Server = this;
         }
 
-        public async Task Run()
+        /// <summary>
+        /// Runs server listening to incoming connections.
+        /// </summary>
+        public void Run()
         {
             listener.Start();
-            Console.WriteLine("Server is launched.");
+            parentTokenSource = new CancellationTokenSource();
 
-            while (true)
+            mainTask = Task.Run(async () =>
             {
-                var client = await listener.AcceptTcpClientAsync();
-                ++idCounter;
-                clients.TryAdd(client, (new CancellationTokenSource(), idCounter.ToString()));
-                Console.WriteLine($"{idCounter.ToString()}: Client connected.");
-                HandleQuery(client);
-            }
+                while (true)
+                {
+                    while (!listener.Pending())
+                    {
+                        if (parentTokenSource.IsCancellationRequested)
+                        {
+                            return;
+                        }
+                    }
+
+                    var client = await listener.AcceptTcpClientAsync();
+                    ++idCounter;
+                    clients.TryAdd(client, (CancellationTokenSource.CreateLinkedTokenSource(parentTokenSource.Token), idCounter.ToString()));
+                    Console.WriteLine($"{idCounter.ToString()}: Client connected.");
+                    HandleQuery(client);
+                }
+            }, parentTokenSource.Token);
+        }
+
+        /// <summary>
+        /// Closes the server for new connections. Remaining clients are disconnected after pending query.
+        /// </summary>
+        public void Shutdown()
+        {
+            parentTokenSource.Cancel();
+            mainTask.Wait();
+            listener.Stop();
+            idCounter = 0;
         }
 
         private void HandleQuery(TcpClient client)

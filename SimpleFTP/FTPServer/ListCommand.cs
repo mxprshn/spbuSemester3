@@ -1,24 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FTPServer
 {
+    /// <summary>
+    /// Lists content of a directory.
+    /// </summary>
     public class ListCommand : IServerCommand
     {
         private string path;
         private TcpClient client;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="path">Directory to list.</param>
+        /// <param name="client">Client to send response.</param>
         public ListCommand(string path, TcpClient client)
         {
             this.path = path;
             this.client = client;
         }
 
+        /// <summary>
+        /// Sends query with directory contents to client.
+        /// </summary>
         public async Task Execute()
         {
             string responseString = "";

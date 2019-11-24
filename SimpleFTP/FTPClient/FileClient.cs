@@ -7,15 +7,29 @@ using System.Threading.Tasks;
 
 namespace FTPClient
 {
+    /// <summary>
+    /// Class implementing SimpleFTP network client.
+    /// </summary>
     public class FileClient : IDisposable
     {
         private IClient client;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="client">IClient implementation used to send and receive queries.</param>
         public FileClient(IClient client)
         {
             this.client = client;
         }
 
+        /// <summary>
+        /// Gets content of a specific directory on server as a list of FileInformation objects.
+        /// </summary>
+        /// <param name="dirPath">Path to directory to list.</param>
+        /// <returns>List of FileInformation objects for the directory.</returns>
+        /// <exception cref="DirectoryNotFoundException"/>
+        /// <exception cref="ArgumentException"/>
         public async Task<IList<FileInformation>> List(string dirPath)
         {
             await client.Send(BuildListQuery(dirPath));
@@ -39,6 +53,13 @@ namespace FTPClient
             return ParseListResponse(responseString);
         }
 
+        /// <summary>
+        /// Downloads a file from server.
+        /// </summary>
+        /// <param name="sourcePath">Path to file on server.</param>
+        /// <param name="targetPath">Downloaded file path.</param>
+        /// <exception cref="FileNotFoundException"/>
+        /// <exception cref="ArgumentException"/>
         public async Task Get(string sourcePath, string targetPath)
         {
             if (File.Exists(targetPath))

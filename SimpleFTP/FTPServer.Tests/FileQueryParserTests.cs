@@ -1,9 +1,6 @@
-﻿using Moq;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Net.Sockets;
-using System.Text;
 
 namespace FTPServer.Tests
 {
@@ -14,8 +11,8 @@ namespace FTPServer.Tests
         public void ParseQueryTest(string query, Type resultType)
         {
             var parser = new FileQueryParser();
-            var mockClient = new Mock<TcpClient>();
-            var command = parser.ParseQuery(query, mockClient.Object);
+            var client = new TcpClient();
+            var command = parser.ParseQuery(query, client);
 
             if (resultType == null)
             {

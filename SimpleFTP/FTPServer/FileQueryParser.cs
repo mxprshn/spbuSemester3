@@ -1,17 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
+﻿using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace FTPServer
 {
+    /// <summary>
+    /// Class implementing protocol query parser.
+    /// </summary>
     public class FileQueryParser : IQueryParser
     {
-        public FileServer Server { get; set; }
+        /// <summary>
+        /// Server the parser is associated with.
+        /// </summary>
+        public Server Server { get; set; }
 
+        /// <summary>
+        /// Returns an appropriate command by query.
+        /// </summary>
+        /// <param name="source">Query string.</param>
+        /// <param name="client">Client returned command is associated with.</param>
+        /// <returns>An appropriate command.</returns>
         public IServerCommand ParseQuery(string source, TcpClient client)
         {
             if (source == "$bye")

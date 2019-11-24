@@ -2,35 +2,35 @@ using Moq;
 using NUnit.Framework;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FTPServer.Tests
 {
-    public class FileServerTests
+    [TestFixture]
+    public class ServerTests
     {
         [Test]
-        public void HandleQueryTest()
+        public async Task HandleQueryTest()
         {
             var mockParser = new Mock<IQueryParser>();
             var mockCommand = new Mock<IServerCommand>();
-            mockParser.Setup(m => m.ParseQuery(It.IsAny<string>(), It.IsAny<TcpClient>()))
+            mockParser.Setup(m => m.ParseQuery("ololo", It.IsAny<TcpClient>()))
                     .Returns(mockCommand.Object);
 
-            var server = new FileServer(8888, mockParser.Object);
+            var server = new Server(8888, mockParser.Object);
 
-            var task = Task.Run(async () =>
-            {
-                await server.Run();
-            });
+            server.Run();
 
             using (var client = new TcpClient("localhost", 8888))
             {
                 var writer = new StreamWriter(client.GetStream());
-                writer.WriteLine("ololo");
+                await writer.WriteLineAsync("ololo");
+                await writer.FlushAsync();
+                Thread.Sleep(100);
                 mockCommand.Verify(m => m.Execute());
+                server.Shutdown();
             }
-
-            task.
         }
     }
 }

@@ -1,7 +1,6 @@
 using NUnit.Framework;
 using System.Net;
 using System.Net.Sockets;
-using FTPClient;
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
@@ -27,7 +26,7 @@ namespace FTPClient.Tests
         public async Task SendTest([Values("ololo", "")] string data,
                 [Values(0, 3, 7)] int repeatAmount)
         {
-            var listener = new TcpListener(IPAddress.Any, 8888);
+            listener = new TcpListener(IPAddress.Any, 8888);
             listener.Start();
 
             var task = Task.Run(async () =>
@@ -57,7 +56,7 @@ namespace FTPClient.Tests
         [Test]
         public void SendWithNoConnectionTest()
         {
-            var listener = new TcpListener(IPAddress.Any, 8888);
+            listener = new TcpListener(IPAddress.Any, 8888);
             listener.Start();
             using (var client = new Client(8888, "localhost"))
             {
@@ -70,7 +69,7 @@ namespace FTPClient.Tests
         public async Task ReceiveTest(byte[] data, int repeatAmount)
         {
             var resetEvent = new AutoResetEvent(false);
-            var listener = new TcpListener(IPAddress.Any, 8888);
+            listener = new TcpListener(IPAddress.Any, 8888);
             listener.Start();
 
             var task = Task.Run(async () =>
@@ -104,7 +103,7 @@ namespace FTPClient.Tests
         [Test]
         public void ReceiveWithNoConnectionTest()
         {
-            var listener = new TcpListener(IPAddress.Any, 8888);
+            listener = new TcpListener(IPAddress.Any, 8888);
             listener.Start();
             using (var client = new Client(8888, "localhost"))
             {

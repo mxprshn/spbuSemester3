@@ -1,18 +1,29 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FTPClient
 {
+    /// <summary>
+    /// Class implementing a network client for various tasks and protocols.
+    /// </summary>
     public class Client : IClient, IDisposable
     {
         private TcpClient tcpClient;
         private const string defaultHost = "localhost";
+
+        /// <summary>
+        /// Gets a value indicating whether client is connected to a remote host after the most recent operation.
+        /// </summary>
         public bool IsConnected => tcpClient.Connected;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="port">The port number of the remote host to which you intend to connect.</param>
+        /// <param name="hostname">The DNS name of the remote host to which you intend to connect.</param>
+        /// <exception cref="ConnectionToServerException">Thrown in case of connection error.</exception>
         public Client(int port, string hostname = defaultHost)
         {
             try
@@ -25,12 +36,11 @@ namespace FTPClient
             }
         }
 
-        public void Dispose()
-        {
-            tcpClient.Close();
-            tcpClient.Dispose();
-        }
-
+        /// <summary>
+        /// Gets bytes of data from server asynchronously.
+        /// </summary>
+        /// <returns>Read bytes.</returns>
+        /// <exception cref="ConnectionToServerException">Thrown in case of connection error.</exception>
         public async Task<byte[]> Receive()
         {
             var stream = tcpClient.GetStream();
@@ -62,6 +72,30 @@ namespace FTPClient
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Sends data to server asynchronously.
+        /// </summary>
+        /// <param name="data">Data to send.</param>
+        /// <exception cref="ConnectionToServerException">Thrown in case of connection error.</exception>
+        public async Task Send(string data)
+        {
+            try
+            {
+                var writer = new StreamWriter(tcpClient.GetStream());
+                await TryToWriteData(writer, data);
+            }
+            catch (Exception e) when (e is SocketException || e is IOException)
+            {
+                throw new ConnectionToServerException(e.Message, e);
+            }
+        }
+
+        public void Dispose()
+        {
+            tcpClient.Close();
+            tcpClient.Dispose();
         }
 
         private async Task WaitForData(NetworkStream stream)
@@ -110,19 +144,6 @@ namespace FTPClient
         {
             await writer.WriteLineAsync(data);
             await writer.FlushAsync();
-        }
-
-        public async Task Send(string data)
-        {
-            try
-            {
-                var writer = new StreamWriter(tcpClient.GetStream());
-                await TryToWriteData(writer, data);
-            }
-            catch (Exception e) when (e is SocketException || e is IOException)
-            {
-                throw new ConnectionToServerException(e.Message, e);
-            }
         }
     }
 }
