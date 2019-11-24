@@ -12,5 +12,5 @@ build_script:
   - msbuild %solution_path%
 
 test-script:
-  - dotnet test SimpleFTP\FTPServer.Tests\FTPServer.Tests.csproj
-  - dotnet test SimpleFTP\FTPClient.Tests\FTPClient.Tests.csproj
+  - dotnet test --test-adapter-path:. --logger:Appveyor SimpleFTP\FTPServer.Tests\FTPServer.Tests.csproj
+  - dotnet test --test-adapter-path:. --logger:Appveyor SimpleFTP\FTPClient.Tests\FTPClient.Tests.csproj
