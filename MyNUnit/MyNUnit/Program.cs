@@ -10,6 +10,8 @@ namespace MyNUnit
     {
         static void Main(string[] args)
         {
+            Tester.Test("");
+            Console.ReadKey();
         }
     }
 }
