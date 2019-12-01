@@ -41,10 +41,12 @@ namespace MyNUnit
             {
                 try
                 {
+                    _ = AssemblyName.GetAssemblyName(name);                    
                 }
                 catch (Exception e)
                 {
-                    logger.Error(e, "Invalid executable file.");
+                    logger.Error(e, $"Invalid executable file: {name}");
+                    continue;
                 }
 
                 result.Add(Assembly.LoadFrom(name));
