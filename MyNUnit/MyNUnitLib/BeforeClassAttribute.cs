@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MyNUnitLib
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    class BeforeClassAttribute : Attribute
+    public class BeforeClassAttribute : Attribute
     {
     }
 }

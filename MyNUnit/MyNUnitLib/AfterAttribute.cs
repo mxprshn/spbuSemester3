@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MyNUnitLib
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    class AfterAttribute : Attribute
+    public class AfterAttribute : Attribute
     {
     }
 }
