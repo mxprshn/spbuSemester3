@@ -71,66 +71,46 @@ namespace MyNUnit
                 return;
             }
 
-            var beforeClassMethods = new List<MethodInfo>();
-            var afterClassMethods = new List<MethodInfo>();
-            var beforeMethods = new List<MethodInfo>();
-            var afterMethods = new List<MethodInfo>();
             var testMethods = new Queue<(MethodInfo method, Type exception)>();
+
+            var methods = new Dictionary<Type, MethodInfo>();
+            var staticMethodAttr = new HashSet<Type> { typeof(BeforeClassAttribute), typeof(AfterClassAttribute) };
+            var methodAttr = new HashSet<Type> { typeof(BeforeAttribute), typeof(AfterAttribute),
+                    typeof(BeforeClassAttribute), typeof(AfterClassAttribute), typeof(TestAttribute) };
 
             foreach (var method in typeInfo.GetMethods())
             {
-                foreach (var attribute in method.GetCustomAttributes())
+                var goodAttributes = methodAttr.Intersect(method.GetCustomAttributes().Select(a => a.GetType()));
+
+                if (goodAttributes.Count() != 1)
                 {
-                    if (attribute.GetType() == typeof(BeforeClassAttribute))
+                    if (goodAttributes.Count() > 1)
                     {
-                        if (!method.IsStatic)
-                        {
-                            logger.Error("'BeforeClass' method must be static.");
-                        }
-                        else
-                        {
-                            beforeClassMethods.Add(method);
-                        }
+                        logger.Error("Method must have only one test attribute.");
                     }
+                    break;
+                }
 
-                    if (attribute.GetType() == typeof(AfterClassAttribute))
-                    {
-                        if (!method.IsStatic)
-                        {
-                            logger.Error("'AfterClass' method must be static.");
-                        }
-                        else
-                        {
-                            afterClassMethods.Add(method);
-                        } 
-                    }
+                var attribute = goodAttributes.First();
 
-                    if (attribute.GetType() == typeof(BeforeAttribute))
-                    {
-                        beforeMethods.Add(method);
-                    }
-
-                    if (attribute.GetType() == typeof(AfterAttribute))
-                    {
-                        afterMethods.Add(method);
-                    }
-
-                    if (attribute.GetType() == typeof(TestAttribute))
-                    {
-                        var testAttribute = (TestAttribute)attribute;
-
-                        if (testAttribute.Ignore != null)
-                        {
-                            logger.Info($"Test {method.Name} ignored: {testAttribute.Ignore}");
-                        }
-                        else
-                        {
-                            testMethods.Enqueue((method, testAttribute.Expected));
-                        }
-                    }
+                if (attribute == typeof(TestAttribute))
+                {
+                    if (()attribute)
+                }
+                else if (staticMethodAttr.Contains(attribute) && !method.IsStatic)
+                {
+                    logger.Error("Method must be static.");
+                }
+                else if (!methods.ContainsKey(attribute))
+                {
+                    methods.Add(attribute, method);
+                }
+                else
+                {
+                    logger.Error($"Class must have only one method with {attribute.Name} attribute.");
                 }
             }
-
+            
             if (testMethods.Count == 0)
             {
                 logger.Info($"Tests not found in class {typeInfo.Name}");
