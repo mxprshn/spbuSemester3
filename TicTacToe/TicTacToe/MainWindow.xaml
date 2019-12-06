@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="TicTacToe" Height="300" Width="300" MinWidth="300" MinHeight="300">
   <Grid Name="ButtonGrid" Margin="8">
+
     <Grid.RowDefinitions>
       <RowDefinition Height="*"/>
       <RowDefinition Height="*"/>

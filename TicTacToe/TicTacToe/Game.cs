@@ -8,7 +8,7 @@ namespace TicTacToe
     class Game
     {
         private const int MaxMoveCount = 9;
-        private Player[] players = new Player[] { new Player("crosses", 'X'), new Player("noughts", 'O') };
+        private Player[] players = new Player[] { new Player("dogs", "🐕"), new Player("apples", "🍎") };
         private int moveCount;
 
         /// <summary>

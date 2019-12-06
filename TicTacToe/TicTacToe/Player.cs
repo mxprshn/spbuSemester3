@@ -14,7 +14,7 @@ namespace TicTacToe
         /// <summary>
         /// Symbol which is drawn at the poard when the player captures position.
         /// </summary>
-        public char Symbol { get; private set; }
+        public string Symbol { get; private set; }
 
         private bool[,] board = { { false, false, false }, { false, false, false },
                 { false, false, false } };
@@ -22,7 +22,7 @@ namespace TicTacToe
         /// <summary>
         /// Constructor.
         /// </summary>
-        public Player(string name, char symbol)
+        public Player(string name, string symbol)
         {
             Name = name;
             Symbol = symbol;
