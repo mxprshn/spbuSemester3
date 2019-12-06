@@ -2,6 +2,7 @@ image: Visual Studio 2017
 
 environment:
   matrix:
+  - solution_path: TicTacToe\TicTacToe.sln
   - solution_path: LazyThreads\LazyThreads.sln
   - solution_path: SimpleThreadPool\SimpleThreadPool.sln
 
