@@ -50,7 +50,7 @@ namespace TicTacToe
 
             if (game.Draw)
             {
-                var result = MessageBox.Show("It is draw! Start a new game?", ":\\", MessageBoxButton.YesNo);
+                var result = MessageBox.Show("It is a draw! Start a new game?", ":\\", MessageBoxButton.YesNo);
 
                 if (result == MessageBoxResult.Yes)
                 {
