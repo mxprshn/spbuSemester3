@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MyNUnitLib
 {
-    public sealed class AfterAttribute : MyNUnitAttribute
+    public abstract class StaticMyNUnitAttribute : MyNUnitAttribute
     {
     }
 }

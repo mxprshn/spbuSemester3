@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace MyNUnitLib
 {
-    public sealed class AfterAttribute : MyNUnitAttribute
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public abstract class MyNUnitAttribute : Attribute
     {
     }
 }

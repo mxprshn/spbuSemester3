@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace MyNUnitLib
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public class BeforeAttribute : Attribute
+    public sealed class BeforeAttribute : MyNUnitAttribute
     {
     }
 }

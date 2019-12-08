@@ -10,7 +10,10 @@ namespace MyNUnit
     {
         static void Main(string[] args)
         {
-            Tester.Test(Console.ReadLine());
+            foreach (var test in TestRunner.Test(Console.ReadLine()))
+            {
+                Console.WriteLine($"{test.ClassName} {test.Name} {test.IsPassed} {test.RunTime}");
+            }
             Console.ReadKey();
         }
     }

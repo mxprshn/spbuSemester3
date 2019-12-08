@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace MyNUnitLib
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public sealed class TestAttribute : Attribute
+    public sealed class TestAttribute : MyNUnitAttribute
     {
         private Type exceptionType = null;
 
