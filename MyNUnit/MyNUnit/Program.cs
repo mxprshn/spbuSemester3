@@ -10,13 +10,30 @@ namespace MyNUnit
 {
     class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             foreach (var test in TestRunner.Test(Console.ReadLine()))
             {
-                Console.WriteLine($"{test.ClassName} {test.Name} {test.IsPassed} {test.RunTime}".Pastel("#27AE60"));
+                PrintTestResult(test);
             }
+
             Console.ReadKey();
+        }
+
+        private static void PrintTestResult(ITest test)
+        {
+            if (test.IsPassed == true)
+            {
+                Console.WriteLine($"{test.Name} in class {test.ClassName} passed in {test.RunTime}.".Pastel("#27AE60"));
+            }
+            else if (test.IsPassed == false)
+            {
+                Console.WriteLine($"{test.Name} in class {test.ClassName} failed.".Pastel("#E74C3C"));
+            }
+            else
+            {
+                Console.WriteLine($"{test.Name} in class {test.ClassName} is ignored: {test.IgnoreReason}.".Pastel("#F7DC6F"));
+            }
         }
     }
 }

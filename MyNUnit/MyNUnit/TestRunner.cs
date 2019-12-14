@@ -61,17 +61,21 @@ namespace MyNUnit
 
         private static IList<ITest> TestType(TypeInfo typeInfo)
         {
+            var myNUnitMethods = typeInfo.GetMethods().Where(MyNUnitMethodSelector<MyNUnitAttribute>);
+            var testMethods = new List<ITest>();
+
+            if (myNUnitMethods.Count() == 0)
+            {
+                return testMethods;
+            }
+
             if (typeInfo.GetConstructor(Type.EmptyTypes) == null)
             {
                 throw new TestRunnerException("Type must have a constructor without parameters.");
             }
 
-            var myNUnitMethods = typeInfo.GetMethods().Where(MyNUnitMethodSelector<MyNUnitAttribute>);
-
             var testBuilder = new TestBuilder(typeInfo, myNUnitMethods.Where(MyNUnitMethodSelector<BeforeAttribute>).FirstOrDefault(),
                         myNUnitMethods.Where(MyNUnitMethodSelector<AfterAttribute>).FirstOrDefault());
-
-            var testMethods = new List<ITest>();
 
             foreach (var testMethod in myNUnitMethods.Where(MyNUnitMethodSelector<TestAttribute>))
             {
