@@ -103,12 +103,14 @@ namespace MyNUnit
                     throw new InvalidOperationException("Test has already been run.");
                 }
 
-                IsPassed = true;
-
                 if (IsIgnored)
                 {                    
                     return;
                 }
+
+                IsPassed = true;
+
+
 
                 var testObject = builder.constructor.Invoke(null);
                 builder.beforeMethod?.Invoke(testObject, null);
@@ -119,7 +121,7 @@ namespace MyNUnit
                 {
                     testMethod.Invoke(testObject, null);
                 }
-                catch (Exception exception) when (exception.GetType() == exceptionType)
+                catch (TargetInvocationException exception) when (exception.InnerException.GetType() == exceptionType)
                 {
 
                 }

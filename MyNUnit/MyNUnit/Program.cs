@@ -27,7 +27,7 @@ namespace MyNUnit
             }
             else
             {
-                Console.WriteLine($"{test.Name} in class {test.ClassName} is ignored: {test.IgnoreReason}.";
+                Console.WriteLine($"{test.Name} in class {test.ClassName} is ignored: {test.IgnoreReason}.");
             }
         }
     }

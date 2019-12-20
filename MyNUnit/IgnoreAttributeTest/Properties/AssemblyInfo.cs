@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MyNUnitSmokeTest")]
+[assembly: AssemblyTitle("IgnoreAttributeTest")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("MyNUnitSmokeTest")]
+[assembly: AssemblyProduct("IgnoreAttributeTest")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("629528de-43d6-4a65-bdcd-3084053bb429")]
+[assembly: Guid("feae0f87-4638-4647-9d5c-1b0fb35f7416")]
 
 // Version information for an assembly consists of the following four values:
 //

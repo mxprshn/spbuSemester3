@@ -114,7 +114,7 @@ namespace MyNUnit
                 throw new TestRunnerException($"Method {methodInfo.Name} with attribute {attributeType.Name} must have no parameters.");
             }
 
-            if (typeof(StaticMyNUnitAttribute).GetType().IsAssignableFrom(attributeType) && !methodInfo.IsStatic)
+            if (typeof(StaticMyNUnitAttribute).IsAssignableFrom(attributeType) && !methodInfo.IsStatic)
             {
                 throw new TestRunnerException($"Method {methodInfo.Name} with attribute {attributeType.Name} must be static.");
             }
