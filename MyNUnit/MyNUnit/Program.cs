@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Pastel;
-using System.Drawing;
 
 namespace MyNUnit
 {
@@ -32,7 +27,7 @@ namespace MyNUnit
             }
             else
             {
-                Console.WriteLine($"{test.Name} in class {test.ClassName} is ignored: {test.IgnoreReason}.".Pastel("#F7DC6F"));
+                Console.WriteLine($"{test.Name} in class {test.ClassName} is ignored: {test.IgnoreReason}.";
             }
         }
     }
