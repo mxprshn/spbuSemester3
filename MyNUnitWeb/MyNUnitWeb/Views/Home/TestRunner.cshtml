@@ -18,9 +18,22 @@
     </form>
 
     <h3>Сборки</h3>
+
     @foreach (var assemblyFileModel in Model)
     {
         <h4>@assemblyFileModel.Name</h4>
     }
+
+    @foreach (var assemblyFileModel in Model)
+    {
+        <h4>@assemblyFileModel.Id</h4>
+    }
+
+    <form asp-controller="Home" asp-action="RunTests">
+        <p>
+            <input type="submit" value="Pusk" />
+        </p>
+    </form>
+
 </body>
 </html>

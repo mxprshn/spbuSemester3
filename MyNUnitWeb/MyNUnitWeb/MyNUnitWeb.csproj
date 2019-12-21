@@ -18,6 +18,10 @@
     <Folder Include="wwwroot\Temp\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MyNUnit\MyNUnit.csproj" />
+  </ItemGroup>
+
 
 
 </Project>

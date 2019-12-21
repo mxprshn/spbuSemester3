@@ -45,6 +45,13 @@ namespace MyNUnitWeb.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        public IActionResult RunTests()
+        {
+            var results = MyNUnit.
+            return RedirectToAction("Index");
+        }
+
         public IActionResult History()
         {
             return View();
