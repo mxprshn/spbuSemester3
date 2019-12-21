@@ -2,6 +2,9 @@
 
 namespace MyNUnit
 {
+    /// <summary>
+    /// Exception thrown in case of running invalid MyNUnit methods.
+    /// </summary>
     [Serializable]
     public class TestRunnerException : Exception
     {

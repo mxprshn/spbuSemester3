@@ -8,10 +8,16 @@ using MyNUnitLib;
 
 namespace MyNUnit
 {
+    /// <summary>
+    /// Class running test methods in assemblies. 
+    /// </summary>
     public static class TestRunner
     {
-        private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-
+        /// <summary>
+        /// Runs all tests in all assemblies in directory.
+        /// </summary>
+        /// <param name="path">Path to directory with assemblies.</param>
+        /// <returns>List of executed tests.</returns>
         public static IList<ITest> Test(string path)
         {
             if (!Directory.Exists(path))
@@ -23,7 +29,7 @@ namespace MyNUnit
 
             if (assemblies.Count() == 0)
             {
-                logger.Info("Assemblies not found.");
+                throw new FileNotFoundException("Assemblies not found.");
             }
 
             return assemblies.AsParallel().AsOrdered().SelectMany(a => TestAssembly(a)).ToList();
@@ -32,22 +38,10 @@ namespace MyNUnit
         private static IEnumerable<Assembly> LoadAssemblies(string path)
         {
             var result = new List<Assembly>();
-            // Add also exe files
             var executableNames = Directory.EnumerateFiles(path, "*.dll", SearchOption.AllDirectories);            
 
             foreach (var name in executableNames)
             {
-                // Remove catching everything
-                try
-                {
-                    _ = AssemblyName.GetAssemblyName(name);                    
-                }
-                catch (Exception e)
-                {
-                    logger.Error(e, $"Invalid executable file: {name}");
-                    continue;
-                }
-
                 result.Add(Assembly.LoadFrom(name));
             }
 
