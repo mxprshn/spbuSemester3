@@ -7,7 +7,7 @@ using MyNUnitWeb.Models;
 
 namespace MyNUnitWeb.Controllers
 {
-    public class HomeController : Controller
+    public class TestRunnerController : Controller
     {
         public IActionResult Index()
         {
