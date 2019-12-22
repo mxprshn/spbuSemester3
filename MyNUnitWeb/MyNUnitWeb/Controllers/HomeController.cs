@@ -6,25 +6,28 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MyNUnitWeb.Models;
 
 namespace MyNUnitWeb.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly TestRunnerRepository testRunnerRepository;
+        private readonly TestArchive testArchive;
         private readonly IWebHostEnvironment environment;
+        private CurrentStateModel currentState;
 
-        public HomeController(TestRunnerRepository testRunnerRepository, IWebHostEnvironment environment)
+        public HomeController(TestArchive testArchive, IWebHostEnvironment environment)
         {
-            this.testRunnerRepository = testRunnerRepository;
+            this.testArchive = testArchive;
             this.environment = environment;
-        }
+            currentState = new CurrentStateModel(environment);
+    }
 
         [HttpGet]
         public IActionResult Index()
         {
-            return View("TestRunner", testRunnerRepository.AssemblyFileModels.ToList());
+            return View("TestRunner", currentState);
         }
 
         [HttpPost]
@@ -36,9 +39,6 @@ namespace MyNUnitWeb.Controllers
                 {
                     file.CopyTo(fileStream);
                 }
-
-                testRunnerRepository.Add(new AssemblyModel { Name = file.FileName });
-                testRunnerRepository.SaveChanges();
             }
 
 
@@ -48,13 +48,55 @@ namespace MyNUnitWeb.Controllers
         [HttpPost]
         public IActionResult RunTests()
         {
-            var results = MyNUnit.
+            foreach (var assemblyPath in Directory.EnumerateFiles($"{environment.WebRootPath}/Temp"))
+            {
+                var results = MyNUnit.TestRunner.Test(assemblyPath);
+                var assemblyName = Path.GetFileName(assemblyPath);
+                var testedAssembly = testArchive.AssemblyModels.FirstOrDefault(a => a.Name == assemblyName);
+
+                if (testedAssembly == null)
+                {
+                    testedAssembly = testArchive.AssemblyModels.Add(new AssemblyModel { Name = assemblyName }).Entity;
+                    testArchive.SaveChanges();
+                }
+
+                foreach (var result in results)
+                {
+                    var test = new TestModel
+                    {
+                        Name = result.Name,
+                        ClassName = result.ClassName,
+                        IsPassed = result.IsPassed,
+                        IsIgnored = result.IsIgnored,
+                        IgnoreReason = result.IgnoreReason,
+                        RunTime = result.RunTime,
+                        AssemblyModel = testedAssembly
+                    };
+
+                    currentState.Tests.Add(test);
+                    testedAssembly.TestModels.Add(test);
+                    testArchive.SaveChanges();
+                }
+            }
+
+            return View("TestRunner", currentState);
+        }
+
+        public IActionResult ClearCurrentAssemblies()
+        {
+            var tempDirectory = new DirectoryInfo($"{environment.WebRootPath}/Temp");
+
+            foreach (var file in tempDirectory.GetFiles())
+            {
+                file.Delete();
+            }
+
             return RedirectToAction("Index");
         }
 
         public IActionResult History()
         {
-            return View();
+            return View(testArchive.AssemblyModels.Include("TestModels").ToList());
         }
     }
 }

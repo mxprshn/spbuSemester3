@@ -14,6 +14,7 @@ namespace MyNUnitWeb.Models
         public bool IsIgnored { get; set; }
         public string IgnoreReason { get; set; }
         public TimeSpan RunTime { get; set; }
-        public AssemblyModel Assembly { get; set; }
+
+        public AssemblyModel AssemblyModel { get; set; }
     }
 }

@@ -5,6 +5,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20191221173020_Initial.cs" />
+    <Compile Remove="Migrations\20191221173020_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20191221220226_Initial.cs" />
+    <Compile Remove="Migrations\20191221220226_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20191221224043_Initial.cs" />
+    <Compile Remove="Migrations\20191221224043_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20191221224909_Initial.cs" />
+    <Compile Remove="Migrations\20191221224909_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20191221225755_Initial.cs" />
+    <Compile Remove="Migrations\20191221225755_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20191222091807_Initial.cs" />
+    <Compile Remove="Migrations\20191222091807_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20191222095044_Initial.cs" />
+    <Compile Remove="Migrations\20191222095044_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20191222100220_Initial.cs" />
+    <Compile Remove="Migrations\20191222100220_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20191222101223_Inital.cs" />
+    <Compile Remove="Migrations\20191222101223_Inital.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.0">
       <PrivateAssets>all</PrivateAssets>

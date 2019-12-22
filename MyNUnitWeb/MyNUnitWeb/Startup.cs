@@ -26,8 +26,8 @@ namespace MyNUnitWeb
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddDbContext<TestRunnerRepository>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("TestRunnerRepository")));
+            services.AddDbContext<TestArchive>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("TestArchive")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

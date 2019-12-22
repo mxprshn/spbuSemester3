@@ -1,4 +1,4 @@
-﻿@model IEnumerable<AssemblyModel>
+﻿@model CurrentStateModel
 
 @{
     ViewData["Title"] = "Test Runner";
@@ -8,32 +8,69 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
-    <title>MyView</title>
 </head>
 <body>
-    <h3>Выберите файл для загрузки</h3>
-    <form asp-action="AddAssembly" asp-controller="Home" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" /><br>
-        <input type="submit" value="Загрузить" />
-    </form>
+    <div class="row">
 
-    <h3>Сборки</h3>
+        <div class="col-sm">
 
-    @foreach (var assemblyFileModel in Model)
-    {
-        <h4>@assemblyFileModel.Name</h4>
-    }
+            <h2>Сборки</h2>
 
-    @foreach (var assemblyFileModel in Model)
-    {
-        <h4>@assemblyFileModel.Id</h4>
-    }
+            <form asp-action="AddAssembly" asp-controller="Home" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" />
+                <input type="submit" value="Загрузить" />
+            </form>
 
-    <form asp-controller="Home" asp-action="RunTests">
-        <p>
-            <input type="submit" value="Pusk" />
-        </p>
-    </form>
+            <br />
+
+            <form asp-controller="Home" asp-action="ClearCurrentAssemblies">
+                <p>
+                    <input type="submit" value="Очистить" />
+                </p>
+            </form>
+
+        </div>
+
+        <div class="col-sm">
+            <h2>Тесты</h2>
+
+            <form asp-controller="Home" asp-action="RunTests">
+                <p>
+                    <input type="submit" value="Пуск" />
+                </p>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-sm">
+
+            <table class="table table-bordered">
+                @foreach (var assembly in Model.Assemblies)
+                {
+                    <tr>
+                        <td>@assembly</td>
+                    </tr>
+                }
+            </table>
+
+        </div>
+
+        <div class="col-sm">
+
+            <table class="table table-bordered">
+                @foreach (var test in Model.Tests)
+                {
+                    <tr>
+                        <td>@test.Name</td>
+                    </tr>
+                }
+            </table>
+
+        </div>
+    </div>
 
 </body>
 </html>

@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace MyNUnitWeb.Models
 {
-    public class TestRunnerRepository : DbContext
+    public class TestArchive : DbContext
     {
-        public DbSet<AssemblyModel> AssemblyFileModels { get; set; }
+        public DbSet<AssemblyModel> AssemblyModels { get; set; }
+        public DbSet<TestModel> TestModels { get; set; }
 
-        public TestRunnerRepository(DbContextOptions<TestRunnerRepository> options)
+        public TestArchive(DbContextOptions<TestArchive> options)
                 : base(options)
         {
         }

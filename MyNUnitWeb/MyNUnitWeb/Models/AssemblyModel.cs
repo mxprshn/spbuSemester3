@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,6 +10,6 @@ namespace MyNUnitWeb.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public List<TestModel> Tests { get; set; }
+        public virtual ICollection<TestModel> TestModels { get; set; } = new List<TestModel>();
     }
 }

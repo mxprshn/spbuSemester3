@@ -14,38 +14,15 @@ namespace MyNUnit
     public static class TestRunner
     {
         /// <summary>
-        /// Runs all tests in all assemblies in directory.
+        /// Runs all tests in assembly.
         /// </summary>
-        /// <param name="path">Path to directory with assemblies.</param>
+        /// <param name="path">Path to assembly.</param>
         /// <returns>List of executed tests.</returns>
         public static IList<ITest> Test(string path)
         {
-            if (!Directory.Exists(path))
-            {
-                throw new DirectoryNotFoundException($"Target directory {path} does not exist.");
-            }
+            var assembly = Assembly.LoadFrom(path);
 
-            var assemblies = LoadAssemblies(path);
-
-            if (assemblies.Count() == 0)
-            {
-                throw new FileNotFoundException("Assemblies not found.");
-            }
-
-            return assemblies.AsParallel().AsOrdered().SelectMany(a => TestAssembly(a)).ToList();
-        }
-        
-        private static IEnumerable<Assembly> LoadAssemblies(string path)
-        {
-            var result = new List<Assembly>();
-            var executableNames = Directory.EnumerateFiles(path, "*.dll", SearchOption.AllDirectories);            
-
-            foreach (var name in executableNames)
-            {
-                result.Add(Assembly.LoadFrom(name));
-            }
-
-            return result;
+            return TestAssembly(assembly).ToList();
         }
 
         private static IList<ITest> TestAssembly(Assembly assembly) =>
