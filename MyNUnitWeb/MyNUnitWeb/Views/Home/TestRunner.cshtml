@@ -17,7 +17,7 @@
             <h2>Сборки</h2>
 
             <form asp-action="AddAssembly" asp-controller="Home" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" />
+                <input type="file" name="file" accept=".dll" />
                 <input type="submit" value="Загрузить" />
             </form>
 
@@ -61,12 +61,46 @@
         <div class="col-sm">
 
             <table class="table table-bordered">
-                @foreach (var test in Model.Tests)
-                {
+                <thead>
                     <tr>
-                        <td>@test.Name</td>
+                        <th scope="col">Тест</th>
+                        <th scope="col">Класс</th>
+                        <th scope="col">Время</th>
+                        <th scope="col">Игнорирован</th>
                     </tr>
-                }
+                </thead>
+                <tbody>
+                    @foreach (var test in Model.Tests)
+                    {
+                        if (test.IsPassed == null)
+                        {
+                            <tr>
+                                <th scope="row">@test.Name</th>
+                                <td>@test.ClassName</td>
+                                <td>@test.RunTime</td>
+                                <td>@test.IgnoreReason</td>
+                            </tr>
+                        }
+                        else if (test.IsPassed == true)
+                        {
+                            <tr style="background-color:darkseagreen; color:darkslategrey">
+                                <th scope="row">@test.Name</th>
+                                <td>@test.ClassName</td>
+                                <td>@test.RunTime</td>
+                                <td></td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr style="background-color:indianred; color:darkred">
+                                <th scope="row">@test.Name</th>
+                                <td>@test.ClassName</td>
+                                <td>@test.RunTime</td>
+                                <td></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
             </table>
 
         </div>
