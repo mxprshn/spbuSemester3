@@ -20,8 +20,7 @@ namespace MyNUnit
         /// <returns>List of executed tests.</returns>
         public static IList<ITest> Test(string path)
         {
-            var assembly = Assembly.LoadFrom(path);
-
+            var assembly = Assembly.Load(File.ReadAllBytes(path));
             return TestAssembly(assembly).ToList();
         }
 
