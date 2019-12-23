@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,12 +10,20 @@ using MyNUnitWeb.Models;
 
 namespace MyNUnitWeb.Controllers
 {
+    /// <summary>
+    /// Main app controller.
+    /// </summary>
     public class HomeController : Controller
     {
         private readonly TestArchive testArchive;
         private readonly IWebHostEnvironment environment;
         private CurrentStateModel currentState;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="testArchive">Test history database access object.</param>
+        /// <param name="environment">Current environment.</param>
         public HomeController(TestArchive testArchive, IWebHostEnvironment environment)
         {
             this.testArchive = testArchive;
@@ -25,12 +31,19 @@ namespace MyNUnitWeb.Controllers
             currentState = new CurrentStateModel(environment);
     }
 
+        /// <summary>
+        /// Loads start page for test running.
+        /// </summary>
         [HttpGet]
         public IActionResult Index()
         {
             return View("TestRunner", currentState);
         }
 
+        /// <summary>
+        /// Adds assembly file to Temp folder on server.
+        /// </summary>
+        /// <param name="file">File loading from form.</param>
         [HttpPost]
         public IActionResult AddAssembly(IFormFile file)
         {
@@ -45,6 +58,9 @@ namespace MyNUnitWeb.Controllers
             return RedirectToAction("Index");
         }
 
+        /// <summary>
+        /// Runs tests in all assemblies in Temp folder and loads page with results. 
+        /// </summary>
         [HttpPost]
         public IActionResult RunTests()
         {
@@ -80,15 +96,18 @@ namespace MyNUnitWeb.Controllers
                         testArchive.SaveChanges();
                     }
                 }
-                catch (TestRunnerException e)
+                catch (AggregateException e) when (e.InnerException.GetType() == typeof(TestRunnerException))
                 {
-                    return View("TestRunnerError", e.Message);
+                    return View("TestRunnerError", e.InnerException.Message);
                 }
             }
 
             return View("TestRunner", currentState);
         }
 
+        /// <summary>
+        /// Deletes all assemblies in Temp folder.
+        /// </summary>
         public IActionResult ClearCurrentAssemblies()
         {
             var tempDirectory = new DirectoryInfo($"{environment.WebRootPath}/Temp");
@@ -101,6 +120,9 @@ namespace MyNUnitWeb.Controllers
             return RedirectToAction("Index");
         }
 
+        /// <summary>
+        /// Loads page with test run history.
+        /// </summary>
         public IActionResult History()
         {
             return View(testArchive.AssemblyModels.Include("TestModels").ToList());
