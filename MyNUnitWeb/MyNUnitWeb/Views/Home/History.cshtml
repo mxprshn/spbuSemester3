@@ -1,11 +1,10 @@
 ﻿@model IEnumerable<AssemblyModel>
 
 @{
-    ViewData["Title"] = "Test History";
+    ViewData["Title"] = "История запусков";
 }
 
 <!DOCTYPE html>
-
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
@@ -23,20 +22,55 @@
                     <div class="card-header" role="tab" id=@("heading" + i.ToString())>
                         <h5 class="mb-0">
                             <a data-toggle="collapse" data-parent="#accordion" href=@("#collapse" + i.ToString()) aria-expanded="true" aria-controls=@("collapse" + i.ToString())>
-                                @Model.ElementAt(i).Name
+                                @Model.ElementAt(i).Name:  @($"{Model.ElementAt(i).TestModels.Where(t => t.IsPassed == true).Count()} пройдено; ")
+                                @($"{Model.ElementAt(i).TestModels.Where(t => t.IsPassed == false).Count()} провалено; ")
+                                @($"{Model.ElementAt(i).TestModels.Where(t => t.IsIgnored == true).Count()} проигнорировано")
                             </a>
                          </h5>
                     </div>
-
                     <div id=@("collapse" + i.ToString()) class="collapse" role="tabpanel" aria-labelledby=@("heading" + i.ToString())>
                         <div class="card-block">
                             <table class="table table-bordered">
-                                @foreach (var test in Model.ElementAt(i).TestModels)
-                                {
+                                <thead>
                                     <tr>
-                                        <td>@test.Name</td>
+                                        <th scope="col">Тест</th>
+                                        <th scope="col">Класс</th>
+                                        <th scope="col">Время</th>
+                                        <th scope="col">Игнорирован</th>
                                     </tr>
-                                }
+                                </thead>
+                                <tbody>
+                                    @foreach (var test in Model.ElementAt(i).TestModels)
+                                    {
+                                        if (test.IsPassed == null)
+                                        {
+                                            <tr style="background-color:gray">
+                                                <th scope="row">@test.Name</th>
+                                                <td>@test.ClassName</td>
+                                                <td>@test.RunTime</td>
+                                                <td>@test.IgnoreReason</td>
+                                            </tr>
+                                        }
+                                        else if (test.IsPassed == true)
+                                        {
+                                            <tr style="background-color:darkseagreen; color:darkslategrey">
+                                                <th scope="row">@test.Name</th>
+                                                <td>@test.ClassName</td>
+                                                <td>@test.RunTime</td>
+                                                <td></td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            <tr style="background-color:indianred; color:darkred">
+                                                <th scope="row">@test.Name</th>
+                                                <td>@test.ClassName</td>
+                                                <td>@test.RunTime</td>
+                                                <td></td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
                             </table>
                         </div>
                     </div>

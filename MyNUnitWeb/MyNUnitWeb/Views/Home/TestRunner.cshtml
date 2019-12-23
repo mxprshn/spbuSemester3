@@ -1,7 +1,7 @@
 ﻿@model CurrentStateModel
 
 @{
-    ViewData["Title"] = "Test Runner";
+    ViewData["Title"] = "Тестирование";
 }
 
 <!DOCTYPE html>
@@ -11,35 +11,26 @@
 </head>
 <body>
     <div class="row">
-
         <div class="col-sm">
-
             <h2>Сборки</h2>
-
             <form asp-action="AddAssembly" asp-controller="Home" method="post" enctype="multipart/form-data">
                 <input type="file" name="file" accept=".dll" />
                 <input type="submit" value="Загрузить" />
             </form>
-
             <br />
-
             <form asp-controller="Home" asp-action="ClearCurrentAssemblies">
                 <p>
                     <input type="submit" value="Очистить" />
                 </p>
             </form>
-
         </div>
-
         <div class="col-sm">
             <h2>Тесты</h2>
-
             <form asp-controller="Home" asp-action="RunTests">
                 <p>
                     <input type="submit" value="Пуск" />
                 </p>
             </form>
-
         </div>
     </div>
 
@@ -55,11 +46,8 @@
                     </tr>
                 }
             </table>
-
         </div>
-
         <div class="col-sm">
-
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -74,7 +62,7 @@
                     {
                         if (test.IsPassed == null)
                         {
-                            <tr>
+                            <tr style="background-color:gray">
                                 <th scope="row">@test.Name</th>
                                 <td>@test.ClassName</td>
                                 <td>@test.RunTime</td>
@@ -102,9 +90,7 @@
                     }
                 </tbody>
             </table>
-
         </div>
     </div>
-
 </body>
 </html>

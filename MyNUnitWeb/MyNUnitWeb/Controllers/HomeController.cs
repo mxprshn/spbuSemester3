@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyNUnit;
 using MyNUnitWeb.Models;
 
 namespace MyNUnitWeb.Controllers
@@ -41,7 +42,6 @@ namespace MyNUnitWeb.Controllers
                 }
             }
 
-
             return RedirectToAction("Index");
         }
 
@@ -50,32 +50,39 @@ namespace MyNUnitWeb.Controllers
         {
             foreach (var assemblyPath in Directory.EnumerateFiles($"{environment.WebRootPath}/Temp"))
             {
-                var results = MyNUnit.TestRunner.Test(assemblyPath);
-                var assemblyName = Path.GetFileName(assemblyPath);
-                var testedAssembly = testArchive.AssemblyModels.FirstOrDefault(a => a.Name == assemblyName);
-
-                if (testedAssembly == null)
+                try
                 {
-                    testedAssembly = testArchive.AssemblyModels.Add(new AssemblyModel { Name = assemblyName }).Entity;
-                    testArchive.SaveChanges();
-                }
+                    var results = TestRunner.Test(assemblyPath);
+                    var assemblyName = Path.GetFileName(assemblyPath);
+                    var testedAssembly = testArchive.AssemblyModels.FirstOrDefault(a => a.Name == assemblyName);
 
-                foreach (var result in results)
-                {
-                    var test = new TestModel
+                    if (testedAssembly == null)
                     {
-                        Name = result.Name,
-                        ClassName = result.ClassName,
-                        IsPassed = result.IsPassed,
-                        IsIgnored = result.IsIgnored,
-                        IgnoreReason = result.IgnoreReason,
-                        RunTime = result.RunTime,
-                        AssemblyModel = testedAssembly
-                    };
+                        testedAssembly = testArchive.AssemblyModels.Add(new AssemblyModel { Name = assemblyName }).Entity;
+                        testArchive.SaveChanges();
+                    }
 
-                    currentState.Tests.Add(test);
-                    testedAssembly.TestModels.Add(test);
-                    testArchive.SaveChanges();
+                    foreach (var result in results)
+                    {
+                        var test = new TestModel
+                        {
+                            Name = result.Name,
+                            ClassName = result.ClassName,
+                            IsPassed = result.IsPassed,
+                            IsIgnored = result.IsIgnored,
+                            IgnoreReason = result.IgnoreReason,
+                            RunTime = result.RunTime,
+                            AssemblyModel = testedAssembly
+                        };
+
+                        currentState.Tests.Add(test);
+                        testedAssembly.TestModels.Add(test);
+                        testArchive.SaveChanges();
+                    }
+                }
+                catch (TestRunnerException e)
+                {
+                    return View("TestRunnerError", e.Message);
                 }
             }
 
