@@ -29,7 +29,7 @@ namespace MyNUnitWeb.Controllers
             this.testArchive = testArchive;
             this.environment = environment;
             currentState = new CurrentStateModel(environment);
-    }
+        }
 
         /// <summary>
         /// Loads start page for test running.
