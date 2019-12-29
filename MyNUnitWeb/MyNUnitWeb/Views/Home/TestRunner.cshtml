@@ -1,0 +1,96 @@
+﻿@model CurrentStateModel
+
+@{
+    ViewData["Title"] = "Тестирование";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+</head>
+<body>
+    <div class="row">
+        <div class="col-sm">
+            <h2>Сборки</h2>
+            <form asp-action="AddAssembly" asp-controller="Home" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept=".dll" />
+                <input type="submit" value="Загрузить" />
+            </form>
+            <br />
+            <form asp-controller="Home" asp-action="ClearCurrentAssemblies">
+                <p>
+                    <input type="submit" value="Очистить" />
+                </p>
+            </form>
+        </div>
+        <div class="col-sm">
+            <h2>Тесты</h2>
+            <form asp-controller="Home" asp-action="RunTests">
+                <p>
+                    <input type="submit" value="Пуск" />
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-sm">
+
+            <table class="table table-bordered">
+                @foreach (var assembly in Model.Assemblies)
+                {
+                    <tr>
+                        <td>@assembly</td>
+                    </tr>
+                }
+            </table>
+        </div>
+        <div class="col-sm">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">Тест</th>
+                        <th scope="col">Класс</th>
+                        <th scope="col">Время</th>
+                        <th scope="col">Игнорирован</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var test in Model.Tests)
+                    {
+                        if (test.IsPassed == null)
+                        {
+                            <tr style="background-color:gray">
+                                <th scope="row">@test.Name</th>
+                                <td>@test.ClassName</td>
+                                <td>@test.RunTime</td>
+                                <td>@test.IgnoreReason</td>
+                            </tr>
+                        }
+                        else if (test.IsPassed == true)
+                        {
+                            <tr style="background-color:darkseagreen; color:darkslategrey">
+                                <th scope="row">@test.Name</th>
+                                <td>@test.ClassName</td>
+                                <td>@test.RunTime</td>
+                                <td></td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr style="background-color:indianred; color:darkred">
+                                <th scope="row">@test.Name</th>
+                                <td>@test.ClassName</td>
+                                <td>@test.RunTime</td>
+                                <td></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
