@@ -2,6 +2,7 @@ image: Visual Studio 2019
 
 environment:
   matrix:
+  - solution_path: SimpleFTP\SimpleFTP.sln
   - solution_path: TicTacToe\TicTacToe.sln
   - solution_path: MyNUnitWeb\MyNUnitWeb.sln
   - solution_path: LazyThreads\LazyThreads.sln
@@ -13,3 +14,7 @@ before_build:
 
 build_script:
   - msbuild %solution_path%
+
+test_script:
+  - dotnet test --test-adapter-path:. --logger:Appveyor SimpleFTP\FTPServer.Tests\FTPServer.Tests.csproj
+  - dotnet test --test-adapter-path:. --logger:Appveyor SimpleFTP\FTPClient.Tests\FTPClient.Tests.csproj
